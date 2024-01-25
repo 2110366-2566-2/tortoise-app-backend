@@ -1,0 +1,29 @@
+package main
+
+import (
+	"net/http"
+	"os"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	// Load environment variables from the .env file
+	err := godotenv.Load()
+	if err != nil {
+		// Handle the error if the .env file is not found
+		panic("Error loading .env file")
+	}
+
+	r := gin.Default()
+	r.GET("/test", func(c *gin.Context) {
+		// Access environment variables using os.Getenv("VARIABLE_NAME")
+		message := os.Getenv("MY_MESSAGE")
+		c.JSON(http.StatusOK, message)
+	})
+
+	// Note: the correct function name is Run, not run
+	r.Run()
+}
+
