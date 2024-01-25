@@ -36,7 +36,7 @@ Ensure you have the following software installed on your machine:
    ```bash
    git clone https://github.com/your-username/PetPal.git
 
-### Usage
+## Usage
 
 ```bash
 go run main.go
