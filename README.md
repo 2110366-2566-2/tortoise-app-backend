@@ -9,6 +9,7 @@ PetPal is a web application built using Go and the Gin framework for backend. It
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
+- [Usage](#usage)
 
 ## Features
 
@@ -34,3 +35,8 @@ Ensure you have the following software installed on your machine:
 
    ```bash
    git clone https://github.com/your-username/PetPal.git
+
+### Usage
+
+```bash
+go run main.go
