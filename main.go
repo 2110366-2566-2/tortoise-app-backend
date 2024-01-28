@@ -13,6 +13,7 @@ func main() {
 	if err != nil {
 		panic("Error loading .env file")
 	}
+	// Hello
 
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
