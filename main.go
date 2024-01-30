@@ -63,22 +63,23 @@ func main() {
 
 type User struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
-	Name         string             `json:"name"`
-	Gender       string             `json:"gender"`
-	Phone_number string             `json:"phone_number"`
-	Image        string             `json:"image"`
-	Role         int32              `json:"role"`
-	Email        string             `json:"email"`
-	Password     string             `json:"password"`
+	Name         string             `bson:"name"`
+	Surname      string             `bson:"surname"`
+	Gender       string             `bson:"gender"`
+	Phone_number string             `bson:"phone_number"`
+	Image        string             `bson:"image"`
+	Role         int32              `bson:"role"`
+	Email        string             `bson:"email"`
+	Password     string             `bson:"password"`
 	Address      struct {
-		Province     string `json:"province"`
-		District     string `json:"district"`
-		Sub_district string `json:"sub_district"`
-		Postal_code  string `json:"postal_code"`
-		Street       string `json:"street"`
-		Building     string `json:"building"`
-		House_number string `json:"house_number"`
-	} `json:"address"`
+		Province     string `bson:"province"`
+		District     string `bson:"district"`
+		Sub_district string `bson:"sub_district"`
+		Postal_code  string `bson:"postal_code"`
+		Street       string `bson:"street"`
+		Building     string `bson:"building"`
+		House_number string `bson:"house_number"`
+	} `bson:"address"`
 }
 
 type Handler struct {
