@@ -62,7 +62,7 @@ func main() {
 }
 
 type User struct {
-	ID           primitive.ObjectID `json:"id"`
+	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	Name         string             `json:"name"`
 	Gender       string             `json:"gender"`
 	Phone_number string             `json:"phone_number"`
