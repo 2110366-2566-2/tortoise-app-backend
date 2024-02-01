@@ -1,9 +1,8 @@
 package app
 
 import (
-	"github.com/Armph/tortoise-app-backend/internal/transport/rest"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/gin-gonic/gin"
-	"github.com/taufanmahaputra/forex/internal/transport/rest"
 )
 
 func Run() {
