@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// user model
+// user model from user collection
 type User struct {
 	ID           primitive.ObjectID `bson:"_id,omitempty"`
 	Name         string             `bson:"name"`
@@ -26,25 +26,26 @@ type User struct {
 		Building     string `bson:"building"`
 		House_number string `bson:"house_number"`
 	} `bson:"address"`
+	Pets []string `bson:"pets"`
 }
 
-// pet model
-type Animal struct {
-	ID             string `bson:"_id"`
-	Age            string `bson:"age"`
-	Price          string `bson:"price"`
-	Is_sold        bool   `bson:"is_sold"`
-	Description    string `bson:"description"`
-	Weight         string `bson:"weight"`
-	Sex            string `bson:"sex"`
-	Species        string `bson:"species"`
-	Type           string `bson:"type"`
-	Behavior       string `bson:"behavior"`
-	Media          string `bson:"media"`
-	Seller_id      string `bson:"seller_id"`
+// pet model pet collection
+type Pet struct {
+	ID             primitive.ObjectID `bson:"_id,omitempty"`
+	Age            string             `bson:"age"`
+	Price          string             `bson:"price"`
+	Is_sold        bool               `bson:"is_sold"`
+	Description    string             `bson:"description"`
+	Weight         string             `bson:"weight"`
+	Sex            string             `bson:"sex"`
+	Species        string             `bson:"species"`
+	Type           string             `bson:"type"`
+	Behavior       string             `bson:"behavior"`
+	Media          string             `bson:"media"`
 	Medical_record struct {
 		Medical_id  string    `bson:"medical_id"`
 		Date        time.Time `bson:"date"`
 		Description string    `bson:"description"`
 	} `bson:"medical_record"`
+	Seller_id string `bson:"seller_id"`
 }
