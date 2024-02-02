@@ -17,4 +17,5 @@ func RootHandler(c *gin.Context) {
 func SetupRoutes(r *gin.Engine) {
 	r.GET("/test", TestHandler)
 	r.GET("/", RootHandler)
+	// r.Use("/pets", PetController)
 }
