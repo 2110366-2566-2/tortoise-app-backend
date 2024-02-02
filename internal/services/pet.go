@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// =========== mock data ===========
+
 var pets []models.Pet
 
 var user = models.User{
@@ -42,10 +44,20 @@ var user = models.User{
 
 var users []models.User = []models.User{user}
 
+// =========== mock data ===========
+
+// GetAllPets godoc
+// @Summary Get all pets
+// @Description Get all pets collection
+// @Endpoint /pets
 func getAllPets(c *gin.Context) {
 	c.JSON(http.StatusOK, &pets)
 }
 
+// GetPetBySeller godoc
+// @Summary Get pets by seller
+// @Description Get pets by seller id
+// @Endpoint /pets/seller/:userID
 func getPetBySeller(c *gin.Context) {
 	userID := c.Param("userID")
 	var petsByUserID []models.Pet
@@ -63,6 +75,10 @@ func getPetBySeller(c *gin.Context) {
 	}
 }
 
+// GetPetByPetID godoc
+// @Summary Get pet by pet id
+// @Description Get pet by pet id
+// @Endpoint /pets/:petID
 func getPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
 	for _, pet := range pets {
@@ -74,6 +90,10 @@ func getPetByPetID(c *gin.Context) {
 	c.JSON(http.StatusNotFound, "Pet not found")
 }
 
+// CreatePet godoc
+// @Summary Create pet
+// @Description Create pet with user id
+// @Endpoint /pets/:userID
 func createPet(c *gin.Context) {
 	userID := c.Param("userID")
 	var pet models.Pet
@@ -101,5 +121,7 @@ func PetController(r *gin.RouterGroup) {
 	r.GET("/:petID", getPetByPetID)
 	r.GET("/seller/:userID", getPetBySeller)
 	r.POST("/:userID", createPet)
-	fmt.Print("\nUser id: ", user.ID.Hex(), "\n\n")
+
+	// Print mock user id for testing
+	fmt.Printf("\nMock user id: %s\n\n", user.ID.Hex())
 }
