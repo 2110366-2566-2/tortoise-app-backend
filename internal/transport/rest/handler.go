@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
 )
 
 func TestHandler(c *gin.Context) {
@@ -17,5 +19,5 @@ func RootHandler(c *gin.Context) {
 func SetupRoutes(r *gin.Engine) {
 	r.GET("/test", TestHandler)
 	r.GET("/", RootHandler)
-	// r.Use("/pets", PetController)
+	services.PetController(r.Group("/pets"))
 }

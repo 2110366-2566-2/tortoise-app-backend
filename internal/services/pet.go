@@ -12,10 +12,15 @@ func getAllPets(c *gin.Context) {
 
 func getPet(c *gin.Context) {
 	id := c.Param("id")
-	c.JSON(http.StatusOK, "Get pets"+id)
+	c.JSON(http.StatusOK, "Get pets "+id)
 }
 
-func PetController(r *gin.Engine) {
+func createPet(c *gin.Context) {
+	id := c.Param("id")
+	c.JSON(http.StatusOK, "Get pets "+id)
+}
+
+func PetController(r *gin.RouterGroup) {
 	r.GET("/", getAllPets)
 	r.GET("/:id", getPet)
 }
