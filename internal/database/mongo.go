@@ -15,22 +15,26 @@ type Handler struct {
 }
 
 func NewHandler(db *mongo.Database) *Handler {
-	return &Handler{db}
+	return &Handler{db: db}
 }
 
-func (h *Handler) CreatePet(ctx context.Context, pet models.Pet) error {
-	_, err := h.db.Collection("pets").InsertOne(ctx, pet)
-	return err
-}
+// func (h *Handler) CreatePet(ctx context.Context, pet models.Pet) error {
+// 	_, err := h.db.Collection("pets").InsertOne(ctx, pet)
+// 	return err
+// }
 
-func (h *Handler) GetPetByID(ctx context.Context, id string) (models.Pet, error) {
-	var pet models.Pet
-	err := h.db.Collection("pets").FindOne(context.Background(), map[string]string{"_id": id}).Decode(&pet)
-	return pet, err
-}
+// func (h *Handler) GetPetByID(ctx context.Context, id string) (models.Pet, error) {
+// 	var pet models.Pet
+// 	err := h.db.Collection("pets").FindOne(context.Background(), map[string]string{"_id": id}).Decode(&pet)
+// 	return pet, err
+// }
 
-func (h *Handler) GetAllPets(ctx context.Context) ([]models.Pet, error) {
+func (h *Handler) GetAllPets(ctx context.Context) (*[]models.Pet, error) {
 	var pets []models.Pet
+	// check data base is connected
+	if err := h.db.Client().Ping(ctx, nil); err != nil {
+		return nil, err
+	}
 	cursor, err := h.db.Collection("pets").Find(ctx, map[string]string{})
 	if err != nil {
 		return nil, err
@@ -43,12 +47,12 @@ func (h *Handler) GetAllPets(ctx context.Context) ([]models.Pet, error) {
 		}
 		pets = append(pets, pet)
 	}
-	return pets, nil
+	return &pets, nil
 }
 
 func ConnectMongo(uri, dbName string, timeout time.Duration) (*mongo.Database, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	// defer cancel()
 
 	clientOpts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOpts)

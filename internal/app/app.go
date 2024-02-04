@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -22,17 +23,12 @@ func Run(env config.EnvVars) (func(), error) {
 		return nil, err
 	}
 
-	// go func() {
-	// 	r.Run(":" + env.PORT)
-	// }()
-
-	// start the server
 	go func() {
-		// service connections
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
+	// r.Run(":" + env.PORT)
 
 	// return a function to close the server and database
 	return func() {
@@ -48,7 +44,10 @@ func Run(env config.EnvVars) (func(), error) {
 			log.Println("Shutdown Server ...")
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
+			defer func() {
+				fmt.Println("defer cancel")
+				cancel()
+			}()
 			if err := srv.Shutdown(ctx); err != nil {
 				log.Fatal("Server Shutdown:", err)
 			}
@@ -60,25 +59,24 @@ func Run(env config.EnvVars) (func(), error) {
 				done <- struct{}{}
 			}()
 			<-done
-			log.Println("Server exiting...")
+			log.Println("Server exiting ...")
 		}()
 	}, nil
 }
 
 func buildServer(env config.EnvVars) (*http.Server, func(), error) {
-	// init the storage
+	// init the database
 	db, err := database.ConnectMongo(env.MONGODB_URI, env.MONGODB_NAME, 10*time.Second)
 	if err != nil {
 		return nil, nil, err
 	}
-
-	// create a new handler
-	// handler := database.NewHandler(db)
+	handler := database.NewHandler(db)
 
 	// init the server
 	r := gin.Default()
 
-	rest.SetupRoutes(r)
+	// setup the routes
+	rest.SetupRoutes(r, handler)
 
 	// create a new server
 	srv := &http.Server{

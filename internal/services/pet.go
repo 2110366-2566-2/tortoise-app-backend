@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -46,11 +47,25 @@ var users []models.User = []models.User{user}
 
 // =========== mock data ===========
 
+type PetHandler struct {
+	handler *database.Handler
+}
+
+func NewPetHandler(handler *database.Handler) *PetHandler {
+	return &PetHandler{handler: handler}
+}
+
 // GetAllPets godoc
 // @Summary Get all pets
 // @Description Get all pets collection
 // @Endpoint /pets
-func getAllPets(c *gin.Context) {
+func (h *PetHandler) GetAllPets(c *gin.Context) {
+	pets, err := h.handler.GetAllPets(c)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
 	c.JSON(http.StatusOK, &pets)
 }
 
@@ -58,7 +73,7 @@ func getAllPets(c *gin.Context) {
 // @Summary Get pets by seller
 // @Description Get pets by seller id
 // @Endpoint /pets/seller/:userID
-func getPetBySeller(c *gin.Context) {
+func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	userID := c.Param("userID")
 	var petsByUserID []models.Pet
 	for _, user := range users {
@@ -79,7 +94,7 @@ func getPetBySeller(c *gin.Context) {
 // @Summary Get pet by pet id
 // @Description Get pet by pet id
 // @Endpoint /pets/:petID
-func getPetByPetID(c *gin.Context) {
+func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
 	for _, pet := range pets {
 		if pet.ID.Hex() == id {
@@ -94,7 +109,7 @@ func getPetByPetID(c *gin.Context) {
 // @Summary Create pet
 // @Description Create pet with user id
 // @Endpoint /pets/:userID
-func createPet(c *gin.Context) {
+func (h *PetHandler) CreatePet(c *gin.Context) {
 	userID := c.Param("userID")
 	var pet models.Pet
 	petID := primitive.NewObjectID()
@@ -114,14 +129,4 @@ func createPet(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusNotFound, "Seller not found")
-}
-
-func PetController(r *gin.RouterGroup) {
-	r.GET("/", getAllPets)
-	r.GET("/:petID", getPetByPetID)
-	r.GET("/seller/:userID", getPetBySeller)
-	r.POST("/:userID", createPet)
-
-	// Print mock user id for testing
-	fmt.Printf("\nMock user id: %s\n\n", user.ID.Hex())
 }
