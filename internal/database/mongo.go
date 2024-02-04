@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -9,14 +10,16 @@ import (
 )
 
 func ConnectMongo(uri, dbName string, timeout time.Duration) (*mongo.Database, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
+	// defer cancel()
 
 	clientOpts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("Connected to MongoDB")
 
 	return client.Database(dbName), nil
 }
