@@ -18,9 +18,10 @@ func NewPetHandler(handler *database.Handler) *PetHandler {
 }
 
 // GetAllPets godoc
+// @Method GET
 // @Summary Get all pets
 // @Description Get all pets collection
-// @Endpoint /pets
+// @Endpoint /api/v1/pets
 func (h *PetHandler) GetAllPets(c *gin.Context) {
 	pets, err := h.handler.GetAllPets(c)
 	if err != nil {
@@ -32,9 +33,10 @@ func (h *PetHandler) GetAllPets(c *gin.Context) {
 }
 
 // GetPetBySeller godoc
+// @Method GET
 // @Summary Get pets by seller
 // @Description Get pets by seller id
-// @Endpoint /pets/seller/:userID
+// @Endpoint /api/v1/pets/seller/:userID
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	userID := c.Param("userID")
 	pets, err := h.handler.GetPetBySeller(c, userID)
@@ -47,9 +49,10 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 }
 
 // GetPetByPetID godoc
+// @Method GET
 // @Summary Get pet by pet id
 // @Description Get pet by pet id
-// @Endpoint /pets/:petID
+// @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
 	pet, err := h.handler.GetPetByPetID(c, id)
@@ -62,9 +65,10 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 }
 
 // CreatePet godoc
+// @Method POST
 // @Summary Create pet
 // @Description Create pet with user id
-// @Endpoint /pets/:userID
+// @Endpoint /api/v1/pets/:userID
 func (h *PetHandler) CreatePet(c *gin.Context) {
 	userID := c.Param("userID")
 	var pet models.Pet
@@ -80,9 +84,10 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 }
 
 // UpdatePet godoc
+// @Method PUT
 // @Summary Update pet
 // @Description Update pet by pet id
-// @Endpoint /pets/:petID
+// @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) UpdatePet(c *gin.Context) {
 	// id := c.Param("petID")
 	// var pet models.Pet
@@ -102,9 +107,10 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 }
 
 // DeletePet godoc
+// @Method DELETE
 // @Summary Delete pet
-// @Description Delete pet by pet id
-// @Endpoint /pets/:petID
+// @Description Delete pet by pet id and delete pet from user's pets
+// @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) DeletePet(c *gin.Context) {
 	c.JSON(http.StatusNotImplemented, "Not implemented")
 }
