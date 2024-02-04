@@ -22,14 +22,14 @@ func main() {
 		exitCode = 1
 		return
 	}
-	// go routine
 
 	// Run the app
 	cleanup, err := app.Run(env)
 
-	// Close the server and database
+	// Close the server and database when the app is done
 	defer cleanup()
 
+	// Handle any errors
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		exitCode = 1

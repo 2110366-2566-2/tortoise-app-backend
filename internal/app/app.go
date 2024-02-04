@@ -23,12 +23,16 @@ func Run(env config.EnvVars) (func(), error) {
 		return nil, err
 	}
 
-	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
-		}
-	}()
-	// r.Run(":" + env.PORT)
+	// go func() {
+	// 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	// 		log.Fatalf("listen: %s\n", err)
+	// 	}
+	// }()
+
+	// Just run the server, doesn't use go routine yet
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("listen: %s\n", err)
+	}
 
 	// return a function to close the server and database
 	return func() {

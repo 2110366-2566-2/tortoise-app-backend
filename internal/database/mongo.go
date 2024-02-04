@@ -39,8 +39,8 @@ func (h *Handler) GetAllPets(ctx context.Context) (*[]models.Pet, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(context.Background())
-	for cursor.Next(context.Background()) {
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
 		var pet models.Pet
 		if err := cursor.Decode(&pet); err != nil {
 			return nil, err
