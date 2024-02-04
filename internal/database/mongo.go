@@ -9,6 +9,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Handler struct {
+	db *mongo.Database
+}
+
+func NewHandler(db *mongo.Database) *Handler {
+	return &Handler{db: db}
+}
+
 func ConnectMongo(uri, dbName string, timeout time.Duration) (*mongo.Database, error) {
 	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	// defer cancel()
