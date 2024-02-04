@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,7 +27,8 @@ func LoginHandler(c *gin.Context) {
 }
 
 func validateLogin(username string, password string) bool {
-	if username != "arm" || password != "proGolfer" {
+	hashedPassword := utils.HashPassword(password)
+	if username != "arm" || hashedPassword != "766a08d07ad6a212c1e41f5efe975814d819bccd8c4a91ce81252820cd627e04" {
 		return false
 	}
 	return true
