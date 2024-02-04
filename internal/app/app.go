@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -24,48 +23,43 @@ func Run(env config.EnvVars) (func(), error) {
 		return nil, err
 	}
 
-	// go func() {
-	// 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-	// 		log.Fatalf("listen: %s\n", err)
-	// 	}
-	// }()
-
-	// Just run the server, doesn't use go routine yet
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("listen: %s\n", err)
-	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
 
 	// return a function to close the server and database
 	return func() {
-		cleanup()
-		func() { // Wait for interrupt signal to gracefully shutdown the server with
+		// Handle cleanup for the server
+		func() {
+			// Wait for interrupt signal to gracefully shutdown the server with
 			// a timeout of 5 seconds.
 			quit := make(chan os.Signal, 1)
-			// kill (no param) default send syscanll.SIGTERM
-			// kill -2 is syscall.SIGINT
-			// kill -9 is syscall. SIGKILL but can"t be catch, so don't need add it
 			signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 			<-quit
 			log.Println("Shutdown Server ...")
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer func() {
-				fmt.Println("defer cancel")
-				cancel()
-			}()
+			defer cancel()
+
 			if err := srv.Shutdown(ctx); err != nil {
 				log.Fatal("Server Shutdown:", err)
 			}
-			// catching ctx.Done(). timeout of 5 seconds.
+
 			done := make(chan struct{})
 			go func() {
-				<-ctx.Done()
 				log.Println("timeout of 5 seconds.")
+				<-ctx.Done()
 				done <- struct{}{}
 			}()
 			<-done
+
 			log.Println("Server exiting ...")
 		}()
+
+		// Handle cleanup for the database
+		cleanup()
 	}, nil
 }
 
@@ -81,8 +75,8 @@ func buildServer(env config.EnvVars) (*http.Server, func(), error) {
 	r := gin.Default()
 
 	// setup the routes
-	rest.SetupRoutes(r, handler)
-	apiV1.SetupRoutes(r)
+	rest.SetupRoutes(r)
+	apiV1.SetupRoutes(r, handler)
 
 	// create a new server
 	srv := &http.Server{

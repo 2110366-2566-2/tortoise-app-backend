@@ -24,7 +24,7 @@ type User struct {
 		Building     string `bson:"building"`
 		House_number string `bson:"house_number"`
 	} `bson:"address"`
-	Pets []string `bson:"pets"`
+	Pets []primitive.ObjectID `bson:"pets"`
 }
 
 // pet model pet collection
