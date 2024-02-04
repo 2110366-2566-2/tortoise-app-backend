@@ -13,6 +13,7 @@ import (
 	config "github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
 	"github.com/gin-gonic/gin"
 )
 
@@ -81,6 +82,7 @@ func buildServer(env config.EnvVars) (*http.Server, func(), error) {
 
 	// setup the routes
 	rest.SetupRoutes(r, handler)
+	apiV1.SetupRoutes(r)
 
 	// create a new server
 	srv := &http.Server{
