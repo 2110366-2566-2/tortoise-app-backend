@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -85,6 +86,10 @@ func buildServer(env config.EnvVars) (*http.Server, func(), error) {
 	}
 
 	return srv, func() {
-		database.CloseMongo(db)
+		log.Println("Closing the database ...")
+		err := database.CloseMongo(db)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
 	}, nil
 }
