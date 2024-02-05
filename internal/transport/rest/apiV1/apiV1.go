@@ -21,6 +21,15 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 	r.DELETE("/:petID", petHandler.DeletePet)
 }
 
+func UserController(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new user handler
+	userHandler := services.NewUserHandler(h)
+
+	// Set up routes
+	r.GET("/", userHandler.GetAllUsers)
+	r.GET("/:userID", userHandler.GetUserByUserID)
+}
+
 func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	apiV1 := r.Group("/api/v1")
 
@@ -30,4 +39,5 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 
 	apiV1.POST("/login", services.LoginHandler)
 	PetController(apiV1.Group("/pets"), h)
+	UserController(apiV1.Group("/users"), h)
 }
