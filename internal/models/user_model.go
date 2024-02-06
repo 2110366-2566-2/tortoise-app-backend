@@ -6,7 +6,7 @@ import (
 
 // user model from user collection
 type User struct {
-	ID           primitive.ObjectID `json:"_id,omitempty"`
+	ID           primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	Name         string             `json:"name"`
 	Surname      string             `json:"surname"`
 	Gender       string             `json:"gender"`

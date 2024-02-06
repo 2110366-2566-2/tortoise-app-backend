@@ -6,7 +6,7 @@ import (
 
 // pet model from pet collection
 type Pet struct {
-	ID             primitive.ObjectID `json:"_id,omitempty"`
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	Name           string             `json:"name"`
 	Age            int32              `json:"age"`
 	Price          int32              `json:"price"`
@@ -28,7 +28,7 @@ type Pet struct {
 
 // pet card model from pet collection
 type PetCard struct {
-	ID          primitive.ObjectID `json:"_id,omitempty"`
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
 	Name        string             `json:"name"`
 	Price       int32              `json:"price"`
 	Type        string             `json:"type"`
