@@ -24,5 +24,4 @@ type User struct {
 		Building     string `json:"building"`
 		House_number string `json:"house_number"`
 	} `json:"address"`
-	Pets []primitive.ObjectID `json:"pets"`
 }
