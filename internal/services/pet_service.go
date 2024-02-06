@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -29,7 +30,13 @@ func (h *PetHandler) GetAllPets(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusOK, &pets)
+	petJson, err := json.Marshal(&pets)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, &petJson)
 }
 
 // GetPetBySeller godoc
