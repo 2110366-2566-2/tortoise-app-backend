@@ -8,20 +8,41 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Pet methods
 
 // GetAllPets returns all pets
-func (h *Handler) GetAllPets(ctx context.Context) (*[]models.Pet, error) {
-	var pets []models.Pet
-	cursor, err := h.db.Collection("pets").Find(ctx, map[string]string{})
+func (h *Handler) GetAllPetCards(ctx context.Context) (*[]models.PetCard, error) {
+	var pets []models.PetCard
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"is_sold": false}}},
+		{{Key: "$lookup", Value: bson.M{
+			"from":         "sellers",
+			"localField":   "seller_id",
+			"foreignField": "_id",
+			"as":           "seller",
+		}}},
+		{{Key: "$unwind", Value: "$seller"}},
+		{{Key: "$project", Value: bson.M{
+			"_id":            1,
+			"name":           1,
+			"type":           1,
+			"price":          1,
+			"media":          1,
+			"seller_id":      1,
+			"seller_name":    "$seller.name",
+			"seller_surname": "$seller.surname",
+		}}},
+	}
+	cursor, err := h.db.Collection("pets").Aggregate(ctx, pipeline, options.Aggregate())
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 	for cursor.Next(ctx) {
-		var pet models.Pet
+		var pet models.PetCard
 		if err := cursor.Decode(&pet); err != nil {
 			return nil, err
 		}

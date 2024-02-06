@@ -23,7 +23,7 @@ func NewPetHandler(handler *database.Handler) *PetHandler {
 // @Description Get all pets collection
 // @Endpoint /api/v1/pets
 func (h *PetHandler) GetAllPets(c *gin.Context) {
-	pets, err := h.handler.GetAllPets(c)
+	pets, err := h.handler.GetAllPetCards(c)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, err)
