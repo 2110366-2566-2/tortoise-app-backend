@@ -13,77 +13,43 @@ import (
 
 // Pet methods
 
-// GetAllPets returns all pets
-func (h *Handler) GetAllPetCards(ctx context.Context) (*[]models.PetCard, error) {
-	var pets []models.PetCard
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"is_sold": false}}},
-		{{Key: "$lookup", Value: bson.M{
-			"from":         "sellers",
-			"localField":   "seller_id",
-			"foreignField": "_id",
-			"as":           "seller",
-		}}},
-		{{Key: "$unwind", Value: "$seller"}},
-		{{Key: "$project", Value: bson.M{
-			"_id":            1,
-			"name":           1,
-			"type":           1,
-			"price":          1,
-			"media":          1,
-			"seller_id":      1,
-			"seller_name":    "$seller.name",
-			"seller_surname": "$seller.surname",
-		}}},
-	}
-	cursor, err := h.db.Collection("pets").Aggregate(ctx, pipeline, options.Aggregate())
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
-		var pet models.PetCard
-		if err := cursor.Decode(&pet); err != nil {
-			return nil, err
-		}
-		pets = append(pets, pet)
-	}
-	return &pets, nil
-}
-
 // GetPetByPetID returns a pet by petID
 func (h *Handler) GetPetByPetID(ctx context.Context, petID string) (*models.Pet, error) {
-	var pet models.Pet
 	ObjectID, err := primitive.ObjectIDFromHex(petID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert petID to ObjectID: %v", err)
 	}
-	err = h.db.Collection("pets").FindOne(ctx, map[string]interface{}{"_id": ObjectID}).Decode(&pet)
+	var pet models.Pet
+	filter := bson.M{"_id": ObjectID}
+	err = h.db.Collection("pets").FindOne(ctx, filter).Decode(&pet)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find pet: %v", err)
 	}
 	return &pet, nil
 }
 
 // GetPetBySeller returns pets that belong to a seller
 func (h *Handler) GetPetBySeller(ctx context.Context, userID string) (*[]models.Pet, error) {
-	var pets []models.Pet
 	// Convert userID to ObjectID
 	sellerID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert userID to ObjectID: %v", err)
 	}
+
 	// Find pets by seller_id
-	cursor, err := h.db.Collection("pets").Find(ctx, map[string]interface{}{"seller_id": sellerID.Hex()})
+	filter := bson.M{"seller_id": sellerID}
+	cursor, err := h.db.Collection("pets").Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find pets: %v", err)
 	}
 	defer cursor.Close(ctx)
+
 	// Fetch pets
+	var pets []models.Pet
 	for cursor.Next(ctx) {
 		var pet models.Pet
 		if err := cursor.Decode(&pet); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to decode document: %v", err)
 		}
 		pets = append(pets, pet)
 	}
@@ -95,41 +61,100 @@ func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.P
 	// Update user's pets
 	sellerID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert userID to ObjectID: %v", err)
 	}
-	// find if user exists
-	count, err := h.db.Collection("users").CountDocuments(ctx, bson.M{"_id": sellerID, "role": 1})
-	if err != nil {
-		return nil, err
-	}
-	if count == 0 {
-		return nil, fmt.Errorf("seller not found")
+
+	// Check if seller exists
+	opts := options.FindOne().SetProjection(bson.M{"pets": 0})
+	filter := bson.M{"_id": sellerID}
+	seller := h.db.Collection("sellers").FindOne(ctx, filter, opts)
+	if err := seller.Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("seller not found")
+		}
+		return nil, fmt.Errorf("failed to find seller: %v", err)
 	}
 
 	// Insert pet to pets collection
 	res, err := h.db.Collection("pets").InsertOne(ctx, pet)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to insert pet: %v", err)
 	}
 
 	// Update user's pets
-	_, err = h.db.Collection("users").UpdateOne(ctx, map[string]interface{}{"_id": sellerID}, map[string]interface{}{"$push": map[string]interface{}{"pets": res.InsertedID}})
+	filter = bson.M{"_id": sellerID}
+	update := bson.M{"$push": bson.M{"pets": res.InsertedID}}
+	_, err = h.db.Collection("users").UpdateOne(ctx, filter, update)
 	if err != nil {
-		return nil, err
+		// rollback
+		_, err2 := h.db.Collection("pets").DeleteOne(ctx, bson.M{"_id": res.InsertedID})
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to rollback: %v", err2)
+		}
+
+		return nil, fmt.Errorf("failed to update user's pets: %v", err)
 	}
 
 	return res, nil
 
 }
 
-// func (h *Handler) UpdateOnePet(ctx context.Context, petID string, edit map[string]string) (*mongo.UpdateResult, error) {
-// 	ObjectID, err := primitive.ObjectIDFromHex(petID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	res, err := h.db.Collection("pets").UpdateOne(ctx, map[string]interface{}{"_id": ObjectID}, edit)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return res, nil
-// }
+// UpdateOnePet updates a pet
+func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (*mongo.UpdateResult, error) {
+	// Convert petID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(petID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert petID to ObjectID: %v", err)
+	}
+
+	// Convert BSON M data to BSON B (bson.D)
+	var updateDoc bson.D
+	for key, value := range data {
+		updateDoc = append(updateDoc, bson.E{Key: key, Value: value})
+	}
+
+	// Update pet
+	res, err := h.db.Collection("pets").UpdateOne(ctx, bson.M{"_id": objectID}, bson.D{{Key: "$set", Value: updateDoc}})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update pet: %v", err)
+	}
+
+	return res, nil
+}
+
+// DeleteOnePet deletes a pet
+func (h *Handler) DeleteOnePet(ctx context.Context, petID string) (*mongo.DeleteResult, error) {
+	// Convert petID to ObjectID
+	objectID, err := primitive.ObjectIDFromHex(petID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert petID to objectID: %v", err)
+	}
+	// get sellerId
+	pet, err := h.GetPetByPetID(ctx, petID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pet: %v", err)
+	}
+	sellerID := pet.Seller_id
+
+	// Delete pet from pets collection
+	res, err := h.db.Collection("pets").DeleteOne(ctx, bson.M{"_id": objectID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete pet: %v", err)
+	}
+
+	// Delete pet from user's pets
+	filter := bson.M{"_id": sellerID}
+	update := bson.M{"$pull": bson.M{"pets": objectID}}
+	_, err = h.db.Collection("sellers").UpdateOne(ctx, filter, update)
+	if err != nil {
+		// rollback
+		_, err2 := h.db.Collection("pets").InsertOne(ctx, pet)
+		if err2 != nil {
+			return nil, fmt.Errorf("failed to rollback: %v", err2)
+		}
+
+		return nil, fmt.Errorf("failed to delete pet from user's pets: %v", err)
+	}
+
+	return res, nil
+}

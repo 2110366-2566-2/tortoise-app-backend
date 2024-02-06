@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -19,20 +21,21 @@ type Pet struct {
 	Behavior       string             `json:"behavior"`
 	Media          string             `json:"media"`
 	Medical_record struct {
-		Medical_id  string `json:"medical_id"`
-		Date        string `json:"date"`
-		Description string `json:"description"`
+		Medical_id  string    `json:"medical_id"`
+		Date        time.Time `json:"date"`
+		Description string    `json:"description"`
 	} `json:"medical_record"`
-	Seller_id string `json:"seller_id"`
+	Seller_id primitive.ObjectID `bson:"seller_id,omitempty" json:"seller_id,omitempty"`
 }
 
 // pet card model from pet collection
 type PetCard struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
-	Name        string             `json:"name"`
-	Price       int32              `json:"price"`
-	Type        string             `json:"type"`
-	Media       string             `json:"media"`
-	Seller_id   string             `json:"seller_id"`
-	Seller_name string
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	Name           string             `json:"name"`
+	Price          int32              `json:"price"`
+	Type           string             `json:"type"`
+	Media          string             `json:"media"`
+	Seller_id      string             `json:"seller_id"`
+	Seller_name    string             `json:"seller_name"`
+	Seller_surname string             `json:"seller_surname"`
 }

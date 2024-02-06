@@ -25,10 +25,3 @@ type User struct {
 		House_number string `json:"house_number"`
 	} `json:"address"`
 }
-
-type Seller struct {
-	ID      primitive.ObjectID   `bson:"_id,omitempty" json:"_id,omitempty"`
-	Name    string               `json:"name"`
-	Surname string               `json:"surname"`
-	Pets    []primitive.ObjectID `json:"pets"`
-}
