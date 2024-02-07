@@ -126,8 +126,6 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, &res)
-
-	// mock data
 }
 
 // DeletePet godoc
