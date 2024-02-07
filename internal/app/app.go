@@ -10,14 +10,15 @@ import (
 	"syscall"
 	"time"
 
-	config "github.com/2110366-2566-2/tortoise-app-backend/configs"
+	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func Run(env config.EnvVars) (func(), error) {
+func Run(env configs.EnvVars) (func(), error) {
 	// build the server
 	srv, cleanup, err := buildServer(env)
 	if err != nil {
@@ -64,7 +65,7 @@ func Run(env config.EnvVars) (func(), error) {
 	}, nil
 }
 
-func buildServer(env config.EnvVars) (*http.Server, func(), error) {
+func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// init the database
 	db, err := database.ConnectMongo(env.MONGODB_URI, env.MONGODB_NAME, 10*time.Second)
 	if err != nil {
@@ -74,6 +75,12 @@ func buildServer(env config.EnvVars) (*http.Server, func(), error) {
 
 	// init the server
 	r := gin.Default()
+
+	// set up CORS
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{env.FRONTEND_URL},
+		AllowMethods: []string{"PUT", "GET", "POST", "DELETE"},
+	}))
 
 	// setup the routes
 	rest.SetupRoutes(r)

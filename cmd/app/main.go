@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	config "github.com/2110366-2566-2/tortoise-app-backend/configs"
+	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/app"
 )
 
@@ -16,7 +16,7 @@ func main() {
 	}()
 
 	// Load the environment variables
-	env, err := config.LoadConfig()
+	env, err := configs.LoadConfig()
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		exitCode = 1
