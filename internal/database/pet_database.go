@@ -6,7 +6,6 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -15,13 +14,9 @@ import (
 
 // GetPetByPetID returns a pet by petID
 func (h *Handler) GetPetByPetID(ctx context.Context, petID string) (*models.Pet, error) {
-	ObjectID, err := primitive.ObjectIDFromHex(petID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert petID to ObjectID: %v", err)
-	}
 	var pet models.Pet
-	filter := bson.M{"_id": ObjectID}
-	err = h.db.Collection("pets").FindOne(ctx, filter).Decode(&pet)
+	filter := bson.M{"pet_id": petID}
+	err := h.db.Collection("pets").FindOne(ctx, filter).Decode(&pet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find pet: %v", err)
 	}
@@ -30,14 +25,8 @@ func (h *Handler) GetPetByPetID(ctx context.Context, petID string) (*models.Pet,
 
 // GetPetBySeller returns pets that belong to a seller
 func (h *Handler) GetPetBySeller(ctx context.Context, userID string) (*[]models.Pet, error) {
-	// Convert userID to ObjectID
-	sellerID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert userID to ObjectID: %v", err)
-	}
-
-	// Find pets by seller_id
-	filter := bson.M{"seller_id": sellerID}
+	// Find pets
+	filter := bson.M{"seller_id": userID}
 	cursor, err := h.db.Collection("pets").Find(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find pets: %v", err)
@@ -58,15 +47,9 @@ func (h *Handler) GetPetBySeller(ctx context.Context, userID string) (*[]models.
 
 // CreateOnePet creates a new pet
 func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.Pet) (*mongo.InsertOneResult, error) {
-	// Update user's pets
-	sellerID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert userID to ObjectID: %v", err)
-	}
-
 	// Check if seller exists
 	opts := options.FindOne().SetProjection(bson.M{"pets": 0})
-	filter := bson.M{"_id": sellerID}
+	filter := bson.M{"seller_id": userID}
 	seller := h.db.Collection("sellers").FindOne(ctx, filter, opts)
 	if err := seller.Err(); err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -82,12 +65,12 @@ func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.P
 	}
 
 	// Update user's pets
-	filter = bson.M{"_id": sellerID}
+	filter = bson.M{"seller_id": userID}
 	update := bson.M{"$push": bson.M{"pets": res.InsertedID}}
-	_, err = h.db.Collection("users").UpdateOne(ctx, filter, update)
+	_, err = h.db.Collection("sellers").UpdateOne(ctx, filter, update)
 	if err != nil {
 		// rollback
-		_, err2 := h.db.Collection("pets").DeleteOne(ctx, bson.M{"_id": res.InsertedID})
+		_, err2 := h.db.Collection("pets").DeleteOne(ctx, bson.M{"pet_id": res.InsertedID})
 		if err2 != nil {
 			return nil, fmt.Errorf("failed to rollback: %v", err2)
 		}
@@ -101,12 +84,6 @@ func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.P
 
 // UpdateOnePet updates a pet
 func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (*mongo.UpdateResult, error) {
-	// Convert petID to ObjectID
-	objectID, err := primitive.ObjectIDFromHex(petID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert petID to ObjectID: %v", err)
-	}
-
 	// Convert BSON M data to BSON B (bson.D)
 	var updateDoc bson.D
 	for key, value := range data {
@@ -114,7 +91,7 @@ func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (
 	}
 
 	// Update pet
-	res, err := h.db.Collection("pets").UpdateOne(ctx, bson.M{"_id": objectID}, bson.D{{Key: "$set", Value: updateDoc}})
+	res, err := h.db.Collection("pets").UpdateOne(ctx, bson.M{"pet_id": petID}, bson.D{{Key: "$set", Value: updateDoc}})
 	if err != nil {
 		return nil, fmt.Errorf("failed to update pet: %v", err)
 	}
@@ -124,27 +101,21 @@ func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (
 
 // DeleteOnePet deletes a pet
 func (h *Handler) DeleteOnePet(ctx context.Context, petID string) (*mongo.DeleteResult, error) {
-	// Convert petID to ObjectID
-	objectID, err := primitive.ObjectIDFromHex(petID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert petID to objectID: %v", err)
-	}
 	// get sellerId
 	pet, err := h.GetPetByPetID(ctx, petID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pet: %v", err)
 	}
-	sellerID := pet.Seller_id
 
 	// Delete pet from pets collection
-	res, err := h.db.Collection("pets").DeleteOne(ctx, bson.M{"_id": objectID})
+	res, err := h.db.Collection("pets").DeleteOne(ctx, bson.M{"pet_id": petID})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete pet: %v", err)
 	}
 
 	// Delete pet from user's pets
-	filter := bson.M{"_id": sellerID}
-	update := bson.M{"$pull": bson.M{"pets": objectID}}
+	filter := bson.M{"seller_id": pet.SellerID}
+	update := bson.M{"$pull": bson.M{"pets": petID}}
 	_, err = h.db.Collection("sellers").UpdateOne(ctx, filter, update)
 	if err != nil {
 		// rollback

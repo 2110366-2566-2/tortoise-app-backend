@@ -8,7 +8,6 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PetHandler struct {
@@ -40,8 +39,7 @@ func (h *PetHandler) GetAllPets(c *gin.Context) {
 // @Description Get pets by seller id
 // @Endpoint /api/v1/pets/seller/:userID
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
-	userID := c.Param("userID")
-	pets, err := h.handler.GetPetBySeller(c, userID)
+	pets, err := h.handler.GetPetBySeller(c, c.Param("userID"))
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, err)
@@ -72,7 +70,6 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @Description Create pet with user id
 // @Endpoint /api/v1/pets/:userID
 func (h *PetHandler) CreatePet(c *gin.Context) {
-	userID := c.Param("userID")
 	var pet models.Pet
 	if err := c.BindJSON(&pet); err != nil {
 		log.Println("Error: ", err)
@@ -80,15 +77,8 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		return
 	}
 
-	sellerID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
-		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	pet.Seller_id = sellerID
-	res, err := h.handler.CreateOnePet(c, userID, &pet)
+	pet.SellerID = c.Param("userID")
+	res, err := h.handler.CreateOnePet(c, pet.SellerID, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -105,21 +95,9 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 // @Description Update pet by pet id
 // @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) UpdatePet(c *gin.Context) {
-	id := c.Param("petID")
 	var data bson.M
 	c.BindJSON(&data)
-	// if body have seller_id, convert to ObjectID
-	if data["seller_id"] != nil {
-		seller_id, err := primitive.ObjectIDFromHex(data["seller_id"].(string))
-		if err != nil {
-			log.Println("Error: ", err)
-			c.JSON(http.StatusInternalServerError, err)
-			return
-		}
-		data["seller_id"] = seller_id
-	}
-
-	res, err := h.handler.UpdateOnePet(c, id, data)
+	res, err := h.handler.UpdateOnePet(c, c.Param("petID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, err)
@@ -134,8 +112,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // @Description Delete pet by pet id and delete pet from user's pets
 // @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) DeletePet(c *gin.Context) {
-	id := c.Param("petID")
-	res, err := h.handler.DeleteOnePet(c, id)
+	res, err := h.handler.DeleteOnePet(c, c.Param("petID"))
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, err)
