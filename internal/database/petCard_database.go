@@ -51,18 +51,12 @@ func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) 
 	}
 	defer cursor.Close(ctx)
 
-	check := true
-
 	// Decode results
 	var petCards []models.PetCard
 	for cursor.Next(ctx) {
 		var petCard models.PetCard
 		if err := cursor.Decode(&petCard); err != nil {
 			return nil, fmt.Errorf("failed to decode document: %v", err)
-		}
-		if check {
-			check = false
-			fmt.Println(petCard)
 		}
 		petCards = append(petCards, petCard)
 	}
