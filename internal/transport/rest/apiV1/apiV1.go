@@ -16,7 +16,7 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 	r.GET("/", petHandler.GetAllPets)
 	r.GET("/:petID", petHandler.GetPetByPetID)
 	r.GET("/seller/:userID", petHandler.GetPetBySeller)
-	r.POST("/:userID", petHandler.CreatePet)
+	r.POST("/seller/:userID", petHandler.CreatePet)
 	r.PUT("/:petID", petHandler.UpdatePet)
 	r.DELETE("/:petID", petHandler.DeletePet)
 }

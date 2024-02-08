@@ -2,7 +2,7 @@ package models
 
 // user model from user collection
 type User struct {
-	ID          string `json:"user_id"`
+	User_id     string `json:"user_id"`
 	Name        string `json:"name"`
 	Surname     string `json:"surname"`
 	Gender      string `json:"gender"`

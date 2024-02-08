@@ -114,7 +114,7 @@ func (h *Handler) DeleteOnePet(ctx context.Context, petID string) (*mongo.Delete
 	}
 
 	// Delete pet from user's pets
-	filter := bson.M{"seller_id": pet.SellerID}
+	filter := bson.M{"seller_id": pet.Seller_id}
 	update := bson.M{"$pull": bson.M{"pets": petID}}
 	_, err = h.db.Collection("sellers").UpdateOne(ctx, filter, update)
 	if err != nil {

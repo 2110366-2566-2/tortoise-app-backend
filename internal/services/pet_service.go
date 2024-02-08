@@ -58,7 +58,7 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	pet, err := h.handler.GetPetByPetID(c, id)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, &pet)
@@ -68,7 +68,7 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @Method POST
 // @Summary Create pet
 // @Description Create pet with user id
-// @Endpoint /api/v1/pets/:userID
+// @Endpoint /api/v1/pets/seller/:userID
 func (h *PetHandler) CreatePet(c *gin.Context) {
 	var pet models.Pet
 	if err := c.BindJSON(&pet); err != nil {
@@ -77,8 +77,8 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		return
 	}
 
-	pet.SellerID = c.Param("userID")
-	res, err := h.handler.CreateOnePet(c, pet.SellerID, &pet)
+	pet.Seller_id = c.Param("userID")
+	res, err := h.handler.CreateOnePet(c, pet.Seller_id, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -100,7 +100,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 	res, err := h.handler.UpdateOnePet(c, c.Param("petID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, &res)
@@ -115,7 +115,7 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	res, err := h.handler.DeleteOnePet(c, c.Param("petID"))
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, &res)
