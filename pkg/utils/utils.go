@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"golang.org/x/crypto/bcrypt"
 	"crypto/rand"
 	"encoding/hex"
@@ -13,7 +14,14 @@ func HashPassword(password string) string {
 	if (err != nil) {
 		panic(err)
 	}
+	fmt.Printf("HashPassword: %s\n", string(hash))
 	return string(hash)
+}
+
+// ComparePassword compares a hashed password with a plaintext password
+func ComparePassword(hashedPassword string, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
 }
 
 // ValidateEmail checks if a string is a valid email address
