@@ -27,10 +27,10 @@ func (h *PetHandler) GetAllPets(c *gin.Context) {
 	pets, err := h.handler.GetAllPetCards(c)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, &pets)
+	c.JSON(http.StatusOK, gin.H{"data": &pets})
 }
 
 // GetPetBySeller godoc
@@ -42,10 +42,11 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	pets, err := h.handler.GetPetBySeller(c, c.Param("userID"))
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, &pets)
+
+	c.JSON(http.StatusOK, gin.H{"data": &pets})
 }
 
 // GetPetByPetID godoc
@@ -58,10 +59,10 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	pet, err := h.handler.GetPetByPetID(c, id)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, &pet)
+	c.JSON(http.StatusOK, gin.H{"data": &pet})
 }
 
 // CreatePet godoc
@@ -78,14 +79,14 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 	}
 
 	pet.Seller_id = c.Param("userID")
-	res, err := h.handler.CreateOnePet(c, pet.Seller_id, &pet)
+	err := h.handler.CreateOnePet(c, pet.Seller_id, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, gin.H{"status": "created", "pet_id": pet.Pet_id})
 }
 
 // UpdatePet godoc
@@ -100,10 +101,10 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 	res, err := h.handler.UpdateOnePet(c, c.Param("petID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, &res)
+	c.JSON(http.StatusOK, gin.H{"updated": &res})
 }
 
 // DeletePet godoc
@@ -115,8 +116,8 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	res, err := h.handler.DeleteOnePet(c, c.Param("petID"))
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, &res)
+	c.JSON(http.StatusOK, gin.H{"deleted": &res})
 }
