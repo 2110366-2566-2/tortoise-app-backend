@@ -77,8 +77,8 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		return
 	}
 
-	pet.SellerID = c.Param("userID")
-	res, err := h.handler.CreateOnePet(c, pet.SellerID, &pet)
+	pet.Seller_id = c.Param("userID")
+	res, err := h.handler.CreateOnePet(c, pet.Seller_id, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

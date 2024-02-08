@@ -14,25 +14,34 @@ import (
 // GetAllPetsCard returns all pets with some fields and seller's name and surname
 func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) {
 	// Define the pipeline
+
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"is_sold": false}}},
-		{{Key: "$lookup", Value: bson.M{
-			"from":         "sellers",
-			"localField":   "seller_id",
-			"foreignField": "_id",
-			"as":           "seller",
-		}}},
-		{{Key: "$unwind", Value: "$seller"}},
-		{{Key: "$project", Value: bson.M{
-			"_id":            1,
-			"name":           1,
-			"type":           1,
-			"price":          1,
-			"media":          1,
-			"seller_id":      1,
-			"seller_name":    "$seller.name",
-			"seller_surname": "$seller.surname",
-		}}},
+		bson.D{{Key: "$match", Value: bson.D{{Key: "is_sold", Value: false}}}},
+		bson.D{
+			{Key: "$lookup",
+				Value: bson.D{
+					{Key: "from", Value: "sellers"},
+					{Key: "localField", Value: "seller_id"},
+					{Key: "foreignField", Value: "seller_id"},
+					{Key: "as", Value: "seller"},
+				},
+			},
+		},
+		bson.D{{Key: "$unwind", Value: "$seller"}},
+		bson.D{{Key: "$project",
+			Value: bson.D{
+				{Key: "_id", Value: 0},
+				{Key: "pet_id", Value: 1},
+				{Key: "name", Value: 1},
+				{Key: "type", Value: 1},
+				{Key: "price", Value: 1},
+				{Key: "media", Value: 1},
+				{Key: "seller_id", Value: 1},
+				{Key: "seller_name", Value: "$seller.name"},
+				{Key: "seller_surname", Value: "$seller.surname"},
+			},
+		},
+		},
 	}
 
 	// Execute aggregation
@@ -42,12 +51,18 @@ func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) 
 	}
 	defer cursor.Close(ctx)
 
+	check := true
+
 	// Decode results
 	var petCards []models.PetCard
 	for cursor.Next(ctx) {
 		var petCard models.PetCard
 		if err := cursor.Decode(&petCard); err != nil {
 			return nil, fmt.Errorf("failed to decode document: %v", err)
+		}
+		if check {
+			check = false
+			fmt.Println(petCard)
 		}
 		petCards = append(petCards, petCard)
 	}
