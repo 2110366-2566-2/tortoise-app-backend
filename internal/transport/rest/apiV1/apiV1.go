@@ -28,6 +28,9 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 		c.JSON(http.StatusOK, "This is API v1.0.0")
 	})
 
-	apiV1.POST("/login", services.LoginHandler)
+	apiV1.POST("/login", func(c *gin.Context) {
+		services.LoginHandler(c, h)
+	})
+
 	PetController(apiV1.Group("/pets"), h)
 }

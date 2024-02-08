@@ -1,11 +1,11 @@
 package services
 
 import (
-	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/gin-gonic/gin"
 )
 
-func LoginHandler(c *gin.Context) {
+func LoginHandler(c *gin.Context, h *database.Handler) {
 	var loginRequest struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
@@ -16,20 +16,12 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	validCredentials := validateLogin(loginRequest.Username, loginRequest.Password)
+	user, err := database.ValidateLogin(c, h, loginRequest.Username, loginRequest.Password)
 
-	if !validCredentials {
-		c.JSON(401, gin.H{"error": "Invalid credentials", "hint": "Arm is a pro golfer!"})
+	if err != nil {
+		c.JSON(401, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{"message": "You got it!"})
-}
-
-func validateLogin(username string, password string) bool {
-	hashedPassword := utils.HashPassword(password)
-	if username != "arm" || hashedPassword != "766a08d07ad6a212c1e41f5efe975814d819bccd8c4a91ce81252820cd627e04" {
-		return false
-	}
-	return true
+	c.JSON(200, gin.H{"user": &user})
 }
