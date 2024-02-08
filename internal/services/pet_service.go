@@ -91,7 +91,6 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 
 // UpdatePet godoc
 // @Method PUT
-// @Pa
 // @Summary Update pet
 // @Description Update pet by pet id
 // @Endpoint /api/v1/pets/:petID
