@@ -1,16 +1,19 @@
 package utils
 
 import (
+	"golang.org/x/crypto/bcrypt"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"net/mail"
 )
 
-// HashPassword hashes a password using SHA-256
+// HashPassword hashes a password using bcrypt
 func HashPassword(password string) string {
-	hash := sha256.Sum256([]byte(password))
-	return hex.EncodeToString(hash[:])
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if (err != nil) {
+		panic(err)
+	}
+	return string(hash)
 }
 
 // ValidateEmail checks if a string is a valid email address
