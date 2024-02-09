@@ -35,7 +35,7 @@ Ensure you have the following software installed on your machine:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/Armph/tortoise-app-backend.git
+   git clone https://github.com/2110366-2566-2/tortoise-app-backend.git
    ```
 
 ## Usage

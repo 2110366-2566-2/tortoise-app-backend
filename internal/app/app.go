@@ -76,7 +76,7 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	r := gin.Default()
 
 	// set up CORS
-	r.Use(CORSMiddleware())
+	r.Use(CORSMiddleware(env))
 
 	// setup the routes
 	rest.SetupRoutes(r)
@@ -97,9 +97,9 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	}, nil
 }
 
-func CORSMiddleware() gin.HandlerFunc {
+func CORSMiddleware(env configs.EnvVars) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", env.FRONTEND_URL)
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, x-access-token, x-refresh-token, x-user-id, x-user-role, x-user-email, x-user-name, x-user-phone, x-user-address, x-user-birthdate, x-user-g")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 
@@ -111,22 +111,3 @@ func CORSMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-/*
-func CORSMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-
-		if c.Request.Method == "OPTIONS" {
-			if headers := c.Request.Header.Get("Access-Control-Request-Headers"); headers != "" {
-				c.Writer.Header().Set("Access-Control-Allow-Headers", headers)
-			}
-			c.AbortWithStatus(http.StatusOK)
-			return
-		}
-
-		c.Next()
-	}
-}
-*/
