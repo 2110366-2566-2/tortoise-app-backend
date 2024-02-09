@@ -14,7 +14,6 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -77,10 +76,7 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	r := gin.Default()
 
 	// set up CORS
-	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{env.FRONTEND_URL},
-		AllowMethods: []string{"PUT", "GET", "POST", "DELETE"},
-	}))
+	r.Use(CORSMiddleware())
 
 	// setup the routes
 	rest.SetupRoutes(r)
@@ -100,3 +96,37 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 		}
 	}, nil
 }
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With, x-access-token, x-refresh-token, x-user-id, x-user-role, x-user-email, x-user-name, x-user-phone, x-user-address, x-user-birthdate, x-user-g")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
+/*
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			if headers := c.Request.Header.Get("Access-Control-Request-Headers"); headers != "" {
+				c.Writer.Header().Set("Access-Control-Allow-Headers", headers)
+			}
+			c.AbortWithStatus(http.StatusOK)
+			return
+		}
+
+		c.Next()
+	}
+}
+*/
