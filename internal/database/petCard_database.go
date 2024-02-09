@@ -12,7 +12,7 @@ import (
 // PetCard methods
 
 // GetAllPetsCard returns all pets with some fields and seller's name and surname
-func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) {
+func (h *Handler) GetAllPetCards(ctx context.Context) (*[]models.PetCard, error) {
 	// Define the pipeline
 
 	pipeline := mongo.Pipeline{
@@ -64,5 +64,5 @@ func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) 
 		return nil, fmt.Errorf("cursor error: %v", err)
 	}
 
-	return petCards, nil
+	return &petCards, nil
 }

@@ -62,16 +62,16 @@ func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.P
 	filter := bson.M{"seller_id": userID}
 	seller := h.db.Collection("sellers").FindOne(ctx, filter, opts)
 	if err := seller.Err(); err != nil {
-		if err == mongo.ErrNoDocuments {
-			return fmt.Errorf("seller not found")
-		}
-		return fmt.Errorf("failed to find seller: %v", err)
+		return fmt.Errorf("failed to find seller")
 	}
 
 	// Insert pet to pets collection
 	_, err := h.db.Collection("pets").InsertOne(ctx, pet)
 	if err != nil {
-		return fmt.Errorf("failed to insert pet: %v", err)
+		if err.Error()[32:38] == "E11000" {
+			return fmt.Errorf("pet already exists")
+		}
+		return fmt.Errorf("failed to insert pet")
 	}
 
 	// Update user's pets
@@ -93,17 +93,16 @@ func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.P
 }
 
 // UpdateOnePet updates a pet
-func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (*mongo.UpdateResult, error) {
+func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (*mongo.SingleResult, error) {
 	// Convert BSON M data to BSON B (bson.D)
 	var updateDoc bson.D
-	for key, value := range data {
-		updateDoc = append(updateDoc, bson.E{Key: key, Value: value})
+	for k, v := range data {
+		updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
 	}
+	res := h.db.Collection("pets").FindOneAndUpdate(ctx, bson.M{"pet_id": petID}, bson.D{{Key: "$set", Value: updateDoc}})
+	if res.Err() != nil {
+		return nil, fmt.Errorf("failed to update pet: %v", res.Err())
 
-	// Update pet
-	res, err := h.db.Collection("pets").UpdateOne(ctx, bson.M{"pet_id": petID}, bson.D{{Key: "$set", Value: updateDoc}})
-	if err != nil {
-		return nil, fmt.Errorf("failed to update pet: %v", err)
 	}
 
 	return res, nil
