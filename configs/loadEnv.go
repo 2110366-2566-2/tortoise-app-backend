@@ -14,7 +14,7 @@ type EnvVars struct {
 }
 
 func LoadConfig() (config EnvVars, err error) {
-	err = godotenv.Load(".env") // .env path
+	err = godotenv.Load("./configs/config.env") // .env path
 	if err != nil {
 		return EnvVars{}, err
 	}
