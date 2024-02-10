@@ -6,6 +6,7 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -15,8 +16,12 @@ import (
 // GetPetByPetID returns a pet by petID
 func (h *Handler) GetPetByPetID(ctx context.Context, petID string) (*models.Pet, error) {
 	var pet models.Pet
-	filter := bson.M{"_id": petID}
-	err := h.db.Collection("pets").FindOne(ctx, filter).Decode(&pet)
+	petObjID, err := primitive.ObjectIDFromHex(petID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert petID to ObjectID: %v", err)
+	}
+	filter := bson.M{"_id": petObjID}
+	err = h.db.Collection("pets").FindOne(ctx, filter).Decode(&pet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find pet: %v", err)
 	}
