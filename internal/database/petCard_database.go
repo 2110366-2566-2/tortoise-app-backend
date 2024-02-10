@@ -12,7 +12,7 @@ import (
 // PetCard methods
 
 // GetAllPetsCard returns all pets with some fields and seller's name and surname
-func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) {
+func (h *Handler) GetAllPetCards(ctx context.Context) (*[]models.PetCard, error) {
 	// Define the pipeline
 
 	pipeline := mongo.Pipeline{
@@ -22,7 +22,7 @@ func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) 
 				Value: bson.D{
 					{Key: "from", Value: "sellers"},
 					{Key: "localField", Value: "seller_id"},
-					{Key: "foreignField", Value: "seller_id"},
+					{Key: "foreignField", Value: "_id"},
 					{Key: "as", Value: "seller"},
 				},
 			},
@@ -30,15 +30,15 @@ func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) 
 		bson.D{{Key: "$unwind", Value: "$seller"}},
 		bson.D{{Key: "$project",
 			Value: bson.D{
-				{Key: "_id", Value: 0},
-				{Key: "pet_id", Value: 1},
+				{Key: "_id", Value: 1},
 				{Key: "name", Value: 1},
 				{Key: "type", Value: 1},
+				{Key: "species", Value: 1},
 				{Key: "price", Value: 1},
 				{Key: "media", Value: 1},
 				{Key: "seller_id", Value: 1},
-				{Key: "seller_name", Value: "$seller.name"},
-				{Key: "seller_surname", Value: "$seller.surname"},
+				{Key: "seller_name", Value: "$seller.first_name"},
+				{Key: "seller_surname", Value: "$seller.last_name"},
 			},
 		},
 		},
@@ -64,5 +64,5 @@ func (h *Handler) GetAllPetCards(ctx context.Context) ([]models.PetCard, error) 
 		return nil, fmt.Errorf("cursor error: %v", err)
 	}
 
-	return petCards, nil
+	return &petCards, nil
 }

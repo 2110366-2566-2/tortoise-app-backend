@@ -1,9 +1,11 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 // Seller model from seller collection
 type Seller struct {
-	Seller_id string   `json:"seller_id"`
-	Name      string   `json:"name"`
-	Surname   string   `json:"surname"`
-	Pets      []string `json:"pets"`
+	ID        primitive.ObjectID   `json:"id" bson:"_id"`
+	FirstName string               `json:"first_name"`
+	LastName  string               `json:"last_surname"`
+	Pets      []primitive.ObjectID `json:"pets"`
 }

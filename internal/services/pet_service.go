@@ -8,6 +8,7 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PetHandler struct {
@@ -27,10 +28,10 @@ func (h *PetHandler) GetAllPets(c *gin.Context) {
 	pets, err := h.handler.GetAllPetCards(c)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": &pets})
+	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
 }
 
 // GetPetBySeller godoc
@@ -42,11 +43,15 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	pets, err := h.handler.GetPetBySeller(c, c.Param("userID"))
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		errorMsg := "failed to get pets by seller"
+		if err.Error() == "seller not found" {
+			errorMsg = "seller not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": &pets})
+	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
 }
 
 // GetPetByPetID godoc
@@ -59,10 +64,14 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	pet, err := h.handler.GetPetByPetID(c, id)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		errorMsg := "failed to get pet by pet id"
+		if err.Error() == "mongo: no documents in result" {
+			errorMsg = "pet not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": &pet})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": &pet})
 }
 
 // CreatePet godoc
@@ -74,24 +83,31 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 	var pet models.Pet
 	if err := c.BindJSON(&pet); err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind pet"})
 		return
 	}
+	// create new pet id
+	pet.ID = primitive.NewObjectID()
 
-	pet.Seller_id = c.Param("userID")
-	err := h.handler.CreateOnePet(c, pet.Seller_id, &pet)
+	// convert string to objID
+	petObjID, err := primitive.ObjectIDFromHex(c.Param("userID"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+	pet.Seller_id = petObjID
+	err = h.handler.CreateOnePet(c, pet.Seller_id, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"status": "created", "pet_id": pet.Pet_id})
+	c.JSON(http.StatusCreated, gin.H{"success": true, "data": &pet})
 }
 
 // UpdatePet godoc
 // @Method PUT
-// @Pa
 // @Summary Update pet
 // @Description Update pet by pet id
 // @Endpoint /api/v1/pets/:petID
@@ -101,10 +117,17 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 	res, err := h.handler.UpdateOnePet(c, c.Param("petID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update pet"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"updated": &res})
+	// log result
+	var updatedPet models.Pet
+	err = res.Decode(&updatedPet)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to decode updated pet"})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedPet})
 }
 
 // DeletePet godoc
@@ -116,8 +139,12 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	res, err := h.handler.DeleteOnePet(c, c.Param("petID"))
 	if err != nil {
 		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		errorMsg := "failed to delete pet"
+		if err.Error()[:18] == "failed to get pet:" {
+			errorMsg = "pet not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"deleted": &res})
+	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
