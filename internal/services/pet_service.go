@@ -8,6 +8,7 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PetHandler struct {
@@ -85,9 +86,17 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind pet"})
 		return
 	}
+	// create new pet id
+	pet.ID = primitive.NewObjectID()
 
-	pet.Seller_id = c.Param("userID")
-	err := h.handler.CreateOnePet(c, pet.Seller_id, &pet)
+	// convert string to objID
+	petObjID, err := primitive.ObjectIDFromHex(c.Param("userID"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+	pet.Seller_id = petObjID
+	err = h.handler.CreateOnePet(c, pet.Seller_id, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
@@ -111,15 +120,14 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update pet"})
 		return
 	}
-	var pet models.Pet
-	err = res.Decode(&pet)
+	// log result
+	var updatedPet models.Pet
+	err = res.Decode(&updatedPet)
 	if err != nil {
-		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to decode pet"})
-		return
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to decode updated pet"})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": &pet})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedPet})
 }
 
 // DeletePet godoc
@@ -132,9 +140,8 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete pet"
-		if err.Error() == "mongo: no documents in result" {
+		if err.Error()[:18] == "failed to get pet:" {
 			errorMsg = "pet not found"
-			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
 		return
