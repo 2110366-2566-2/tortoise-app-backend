@@ -2,7 +2,6 @@ package models
 
 // user model from user collection
 type User struct {
-	ID          string `json:"_id"`
 	Username    string `json:"username" binding:"required"` // unique
 	Email       string `json:"email" binding:"required"`    // unique
 	Password    string `json:"password" binding:"required"`
