@@ -11,7 +11,7 @@ type User struct {
 	Gender      string `json:"gender"`
 	PhoneNumber string `json:"phoneNumber"`
 	Image       string `json:"image"`
-	Role        int    `json:"role"`
+	Role        int32  `json:"role"`
 	Address     struct {
 		Province    string `json:"province"`
 		District    string `json:"district"`
@@ -19,6 +19,6 @@ type User struct {
 		PostalCode  string `json:"postalCode"`
 		Street      string `json:"street"`
 		Building    string `json:"building"`
-		HouseNumber string `json:"houseNumber"`
+		HouseNumber int32  `json:"houseNumber"`
 	} `json:"address"`
 }
