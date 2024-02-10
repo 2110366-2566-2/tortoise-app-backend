@@ -15,7 +15,7 @@ import (
 // GetPetByPetID returns a pet by petID
 func (h *Handler) GetPetByPetID(ctx context.Context, petID string) (*models.Pet, error) {
 	var pet models.Pet
-	filter := bson.M{"pet_id": petID}
+	filter := bson.M{"_id": petID}
 	err := h.db.Collection("pets").FindOne(ctx, filter).Decode(&pet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find pet: %v", err)
