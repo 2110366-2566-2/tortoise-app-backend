@@ -2,10 +2,10 @@ package models
 
 // pet model from pet collection
 type Pet struct {
-	Pet_id         string  `json:"_id"`
+	ID             string  `json:"_id"`
 	Name           string  `json:"name"`
-	Age            int     `json:"age"`
-	Price          int     `json:"price"`
+	Age            int32   `json:"age"`
+	Price          int32   `json:"price"`
 	Is_sold        bool    `json:"is_sold"`
 	Description    string  `json:"description"`
 	Weight         float64 `json:"weight"`
@@ -24,7 +24,7 @@ type Pet struct {
 
 // pet card model from pet collection
 type PetCard struct {
-	Pet_id         string `json:"_id"`
+	ID             string `json:"_id"`
 	Name           string `json:"name"`
 	Price          int    `json:"price"`
 	Type           string `json:"type"`

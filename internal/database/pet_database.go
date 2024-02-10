@@ -81,11 +81,11 @@ func (h *Handler) CreateOnePet(ctx context.Context, userID string, pet *models.P
 
 	// Update user's pets
 	filter = bson.M{"seller_id": userID}
-	update := bson.M{"$push": bson.M{"pets": pet.Pet_id}}
+	update := bson.M{"$push": bson.M{"pets": pet.ID}}
 	_, err = h.db.Collection("sellers").UpdateOne(ctx, filter, update)
 	if err != nil {
 		// rollback
-		_, err2 := h.db.Collection("pets").DeleteOne(ctx, bson.M{"pet_id": pet.Pet_id})
+		_, err2 := h.db.Collection("pets").DeleteOne(ctx, bson.M{"pet_id": pet.ID})
 		if err2 != nil {
 			return fmt.Errorf("failed to rollback: %v", err2)
 		}
