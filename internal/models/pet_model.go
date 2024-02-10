@@ -28,6 +28,7 @@ type PetCard struct {
 	Name           string `json:"name"`
 	Price          int    `json:"price"`
 	Type           string `json:"type"`
+	Species        string `json:"species"`
 	Media          string `json:"media"`
 	Seller_id      string `json:"seller_id"`
 	Seller_name    string `json:"seller_name"`
