@@ -1,17 +1,18 @@
 package utils
 
 import (
-	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net/mail"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // HashPassword hashes a password using bcrypt
 func HashPassword(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	if (err != nil) {
+	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("HashPassword: %s\n", string(hash))
