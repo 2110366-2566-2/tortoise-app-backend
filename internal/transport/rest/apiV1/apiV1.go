@@ -32,5 +32,9 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 		services.LoginHandler(c, h)
 	})
 
+	apiV1.POST("/register", func(c *gin.Context) {
+		services.RegisterHandler(c, h)
+	})
+
 	PetController(apiV1.Group("/pets"), h)
 }
