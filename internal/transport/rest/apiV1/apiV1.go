@@ -21,6 +21,17 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 	r.DELETE("/:petID", petHandler.DeletePet)
 }
 
+func UserServices(r *gin.RouterGroup, h *database.Handler) {
+	// Set up routes
+	r.POST("/login", func(c *gin.Context) {
+		services.LoginHandler(c, h)
+	})
+
+	r.POST("/register", func(c *gin.Context) {
+		services.RegisterHandler(c, h)
+	})
+}
+
 func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	apiV1 := r.Group("/api/v1")
 
@@ -28,13 +39,7 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 		c.JSON(http.StatusOK, "This is API v1.0.0")
 	})
 
-	apiV1.POST("/login", func(c *gin.Context) {
-		services.LoginHandler(c, h)
-	})
-
-	apiV1.POST("/register", func(c *gin.Context) {
-		services.RegisterHandler(c, h)
-	})
-
 	PetController(apiV1.Group("/pets"), h)
+
+	UserServices(apiV1.Group("/user"), h)
 }
