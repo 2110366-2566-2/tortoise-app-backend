@@ -32,8 +32,8 @@ func (h *Handler) GetAllPetCards(ctx context.Context) (*[]models.PetCard, error)
 			Value: bson.D{
 				{Key: "_id", Value: 1},
 				{Key: "name", Value: 1},
+				{Key: "category", Value: 1},
 				{Key: "type", Value: 1},
-				{Key: "species", Value: 1},
 				{Key: "price", Value: 1},
 				{Key: "media", Value: 1},
 				{Key: "seller_id", Value: 1},

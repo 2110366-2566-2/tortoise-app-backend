@@ -138,8 +138,8 @@ func (h *Handler) DeleteOnePet(ctx context.Context, petID string) (*mongo.Delete
 	}
 
 	// Delete pet from user's pets
-	filter := bson.M{"seller_id": pet.Seller_id}
-	update := bson.M{"$pull": bson.M{"pets": petID}}
+	filter := bson.M{"_id": pet.Seller_id}
+	update := bson.M{"$pull": bson.M{"pets": pet.ID}}
 	_, err = h.db.Collection("sellers").UpdateOne(ctx, filter, update)
 	if err != nil {
 		// rollback
