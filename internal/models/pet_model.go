@@ -12,8 +12,8 @@ type Pet struct {
 	Description     string             `json:"description"`
 	Weight          float64            `json:"weight"`
 	Sex             string             `json:"sex"`
-	Species         string             `json:"species"`
 	Category        string             `json:"category"`
+	Species         string             `json:"species"`
 	Behavior        string             `json:"behavior"`
 	Media           string             `json:"media"`
 	Medical_records []Medical_record   `json:"medical_records"`
@@ -31,7 +31,7 @@ type PetCard struct {
 	ID             primitive.ObjectID `json:"id" bson:"_id"`
 	Name           string             `json:"name"`
 	Price          int                `json:"price"`
-	Type           string             `json:"type"`
+	Category       string             `json:"category"`
 	Species        string             `json:"species"`
 	Media          string             `json:"media"`
 	Seller_id      primitive.ObjectID `json:"seller_id"`
