@@ -18,6 +18,6 @@ type User struct {
 		PostalCode  string `json:"postalCode"`
 		Street      string `json:"street"`
 		Building    string `json:"building"`
-		HouseNumber int32  `json:"houseNumber"`
+		HouseNumber string `json:"houseNumber"`
 	} `json:"address"`
 }
