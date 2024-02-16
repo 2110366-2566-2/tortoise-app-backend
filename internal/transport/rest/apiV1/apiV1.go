@@ -14,6 +14,7 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 
 	// Set up routes
 	r.GET("/", petHandler.GetAllPets)
+	r.GET("/filter", petHandler.GetFilteredPets)
 	r.GET("/:petID", petHandler.GetPetByPetID)
 	r.GET("/seller/:userID", petHandler.GetPetBySeller)
 	r.POST("/seller/:userID", petHandler.CreatePet)
