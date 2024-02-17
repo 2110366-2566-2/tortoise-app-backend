@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -80,16 +81,16 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @Description Get filtered pets by filter params
 // @Endpoint /api/v1/pets/filter
 func (h *PetHandler) GetFilteredPets(c *gin.Context) {
-	category 		:= c.QueryArray("category")
-	species 		:= c.QueryArray("species")
-	sex 			:= c.QueryArray("sex")
-	behavior 		:= c.QueryArray("behavior")
-	minAgeStr 		:= c.Query("minAge")
-	maxAgeStr 		:= c.Query("maxAge")
-	minWeightStr	:= c.Query("minWeight")
-	maxWeightStr 	:= c.Query("maxWeight")
-	minPriceStr 	:= c.Query("minPrice")
-	maxPriceStr 	:= c.Query("maxPrice")
+	category := c.QueryArray("category")
+	species := c.QueryArray("species")
+	sex := c.QueryArray("sex")
+	behavior := c.QueryArray("behavior")
+	minAgeStr := c.Query("minAge")
+	maxAgeStr := c.Query("maxAge")
+	minWeightStr := c.Query("minWeight")
+	maxWeightStr := c.Query("maxWeight")
+	minPriceStr := c.Query("minPrice")
+	maxPriceStr := c.Query("maxPrice")
 
 	var minPrice, maxPrice, minAge, maxAge, minWeight, maxWeight int
 	var err error
@@ -196,7 +197,9 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var updatedPet models.Pet
 	err = res.Decode(&updatedPet)
 	if err != nil {
+		log.Println("Error decoding updated pet:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to decode updated pet"})
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedPet})
