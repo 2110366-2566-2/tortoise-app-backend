@@ -39,14 +39,24 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	})
 }
 
-// Sink Services
-func SellerServices() {
+func SellerServices(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new seller handler
+	sellerHandler := services.NewSellerHandler(h)
+
+	// Set up routes
+	r.POST("/:sellerID", sellerHandler.AddBankAccount)
+	r.GET("/:sellerID", sellerHandler.GetBankAccount)
+	r.DELETE("/:sellerID", sellerHandler.DeleteBankAccount)
+}
+
+// Services for Testing
+func TestSellerServices() {
 	log.Println("Seller services! ...\n")
 }
-func AdminServices() {
+func TestAdminServices() {
 	log.Println("Admin services! ...\n")
 }
-// End of Sink Services
+// End of Tested Services
 
 func SetupRoutes(r *gin.Engine, h *database.Handler) {
     env, err := configs.LoadConfig()
@@ -73,13 +83,17 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	PetController(petsGroup, h)
 
     // Seller and Admin can access
+    bankGroup := apiV1.Group("/bank")
+    bankGroup.Use(roleMiddleware("seller", "admin"))
+    SellerServices(bankGroup, h)
+
     apiV1.Group("/seller").Use(roleMiddleware("seller", "admin")).GET("/", func(c *gin.Context) {
-        SellerServices()
+        TestSellerServices()
     })
 
     // Admin can access
     apiV1.Group("/admin").Use(roleMiddleware("admin")).GET("/", func(c *gin.Context) {
-        AdminServices()
+        TestAdminServices()
     })
 
     log.Println("Routes are set up successfully!")
