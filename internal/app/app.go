@@ -75,13 +75,12 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// init the server
 	r := gin.Default()
 
-	// setup the routes
-	rest.SetupRoutes(r)
-	apiV1.SetupRoutes(r, handler)
-
 	// set up CORS
 	r.Use(CORSMiddleware(env))
 
+	// setup the routes
+	rest.SetupRoutes(r)
+	apiV1.SetupRoutes(r, handler)
 
 	// create a new server
 	srv := &http.Server{
