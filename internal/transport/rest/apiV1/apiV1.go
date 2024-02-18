@@ -61,13 +61,13 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
         c.JSON(http.StatusOK, "This is API v1.0.0")
     })
 
-    //Unauthorized user can access
+    //Unauthorized user can access (for register and login)
     UserServices(apiV1.Group("/user"), h)
 
     // Add JWT middleware to check the token
     apiV1.Use(jwtMiddleware(env))
 
-    // Seller and Admin can access
+    // Seller and Admin and Buyer can access
     petsGroup := apiV1.Group("/pets")
 	petsGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	PetController(petsGroup, h)
