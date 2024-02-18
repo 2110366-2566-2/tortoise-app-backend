@@ -33,6 +33,16 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	})
 }
 
+func SellerServices(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new seller handler
+	sellerHandler := services.NewSellerHandler(h)
+
+	// Set up routes
+	r.POST("/bank/:sellerID", sellerHandler.AddBankAccount)
+	r.GET("/bank/:sellerID", sellerHandler.GetBankAccount)
+	r.DELETE("/bank/:sellerID", sellerHandler.DeleteBankAccount)
+}
+
 func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	apiV1 := r.Group("/api/v1")
 
@@ -43,4 +53,6 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	PetController(apiV1.Group("/pets"), h)
 
 	UserServices(apiV1.Group("/user"), h)
+
+	SellerServices(apiV1.Group("/seller"), h)
 }
