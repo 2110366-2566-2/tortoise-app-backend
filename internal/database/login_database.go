@@ -20,7 +20,7 @@ func ValidateLogin(ctx context.Context, h *Handler, username string, password st
 		return &user, nil
 	}
 
-	err = h.db.Collection("admin").FindOne(ctx, filter).Decode(&admin)
+	err = h.db.Collection("admins").FindOne(ctx, filter).Decode(&admin)
 	if err == nil && utils.ComparePassword(admin.Password, password) {
 		return &admin, nil
 	}
