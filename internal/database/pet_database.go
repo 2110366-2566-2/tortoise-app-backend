@@ -107,7 +107,16 @@ func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (
 	// Convert BSON M data to BSON B (bson.D)
 	var updateDoc bson.D
 	for k, v := range data {
-		updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		if k == "seller_id" {
+			// convert string to objID
+			v, err := primitive.ObjectIDFromHex(v.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert sellerID to ObjectID: %v", err)
+			}
+			updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		} else {
+			updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		}
 	}
 	// convert string to objID
 	petObjID, err := primitive.ObjectIDFromHex(petID)
