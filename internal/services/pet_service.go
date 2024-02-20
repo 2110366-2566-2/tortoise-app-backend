@@ -223,3 +223,47 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
+
+// GetMasterData godoc
+// @Method GET
+// @Summary Get master data
+// @Description Get master data for pet
+// @Endpoint /api/v1/pets/master
+func (h *PetHandler) GetMasterData(c *gin.Context) {
+	masterData, err := h.handler.GetAllMasterData(c)
+	if err != nil {
+		c.JSON(500, gin.H{"success": false, "error": "failed to get master data"})
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "count": len(*masterData), "data": masterData})
+}
+
+// GetMasterDataByCategory godoc
+// @Method GET
+// @Summary Get master data by category
+// @Description Get master data by category
+// @Endpoint /api/v1/pets/master/:category
+func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
+	masterData, err := h.handler.GetMasterDataByCategory(c, c.Param("category"))
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(500, gin.H{"success": false, "error": "failed to get master data by category"})
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "data": masterData})
+}
+
+// GetCategories godoc
+// @Method GET
+// @Summary Get categories
+// @Description Get list of categories
+// @Endpoint /api/v1/pets/master/categories
+func (h *PetHandler) GetCategories(c *gin.Context) {
+	categories, err := h.handler.GetCategories(c)
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(500, gin.H{"success": false, "error": "failed to get categories"})
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "count": len(categories.Categories), "data": categories})
+}
