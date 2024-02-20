@@ -67,7 +67,7 @@ func (h *Handler) GetAllPetCards(ctx context.Context) (*[]models.PetCard, error)
 	return &petCards, nil
 }
 
-//Get filtered petCard
+// Get filtered petCard
 func (h *Handler) GetFilteredPetCards(ctx context.Context, categories, species, sex, behaviors []string, minAge, maxAge, minWeight, maxWeight, minPrice, maxPrice int) (*[]models.PetCard, error) {
 	// Define the pipeline
 	pipeline := mongo.Pipeline{
@@ -164,4 +164,3 @@ func (h *Handler) GetFilteredPetCards(ctx context.Context, categories, species, 
 
 	return &petCards, nil
 }
-
