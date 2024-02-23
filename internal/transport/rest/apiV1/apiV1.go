@@ -35,6 +35,9 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 }
 
 func UserServices(r *gin.RouterGroup, h *database.Handler) {
+
+	userHandler := services.NewUserHandler(h)
+
 	// Set up routes
 	r.POST("/login", func(c *gin.Context) {
 		services.LoginHandler(c, h)
@@ -43,6 +46,11 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/register", func(c *gin.Context) {
 		services.RegisterHandler(c, h)
 	})
+
+	r.GET("/:userID", userHandler.GetUserByUserID)
+	r.PUT("/passwd/:userID", userHandler.UpdateUserPasswd)
+	r.PUT("/:userID", userHandler.UpdateUser)
+	r.DELETE("/:userID", userHandler.DeleteUser)
 }
 
 func SellerServices(r *gin.RouterGroup, h *database.Handler) {
