@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
@@ -51,6 +52,9 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.PUT("/passwd/:userID", userHandler.UpdateUserPasswd)
 	r.PUT("/:userID", userHandler.UpdateUser)
 	r.DELETE("/:userID", userHandler.DeleteUser)
+    // r.GET("/token/session", func(c *gin.Context) {
+    //     services.GetSessionToken(c, h)
+    // })
 }
 
 func SellerServices(r *gin.RouterGroup, h *database.Handler) {
@@ -93,6 +97,15 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	apiV1.Use(jwtMiddleware(env))
 
 	// Seller and Admin and Buyer can access
+
+	// Get token session
+	apiV1.GET("/token/session", roleMiddleware("seller", "admin", "buyer"), func(c *gin.Context) {
+		userID, _ := c.Get("userID")
+		username, _ := c.Get("username")
+		role, _ := c.Get("role")
+		c.JSON(http.StatusOK, gin.H{"userID": userID, "username": username, "role": role })
+	})
+
 	petsGroup := apiV1.Group("/pets")
 	petsGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	PetController(petsGroup, h)
@@ -152,12 +165,16 @@ func jwtMiddleware(env configs.EnvVars) gin.HandlerFunc {
 			return
 		}
 
-		// Extract the role from the token
+		// Extract from the token
 		claims := token.Claims.(jwt.MapClaims)
+		userID, _ := primitive.ObjectIDFromHex(claims["userID"].(string))
+		username := claims["username"].(string)
 		role := claims["role"].(string)
 
 		// Pass the role to the next middleware/handler
 		c.Set("role", role)
+		c.Set("userID", userID)
+		c.Set("username", username)
 
 		c.Next()
 	}

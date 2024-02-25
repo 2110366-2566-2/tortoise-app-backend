@@ -40,3 +40,4 @@ func GenerateRandomString(length int) (string, error) {
 	}
 	return hex.EncodeToString(bytes), nil
 }
+
