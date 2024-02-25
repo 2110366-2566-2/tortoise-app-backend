@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/gin-gonic/gin"
 	"github.com/dgrijalva/jwt-go"
 	"time"
@@ -26,22 +27,27 @@ func LoginHandler(c *gin.Context, h *database.Handler) {
 		return
 	}
 
+	var userID primitive.ObjectID
+	var username string  
 	var role string
-	var email string
+	// var email string
 	if userRole, ok := user.(*models.User); ok {
 		if userRole.Role == 1 {
 			role = "seller"
-			email = userRole.Email
+			userID = userRole.ID
+			username = userRole.Username
 		} else if userRole.Role == 2 {
 			role = "buyer"
-			email = userRole.Email
+			userID = userRole.ID
+			username = userRole.Username
 		} else {
 			c.JSON(401, gin.H{"error": "user role not found"})
 			return
 		}
 	} else if adminRole, ok := user.(*models.Admin); ok {
 		role = "admin"
-		email = adminRole.Email
+		userID = adminRole.ID
+		username = adminRole.Username
 	} else {
 		c.JSON(401, gin.H{"error": "invalid user type"})
 		return
@@ -49,7 +55,8 @@ func LoginHandler(c *gin.Context, h *database.Handler) {
 
 	// Create a new token object, specifying signing method and the claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": email,
+		"userID": userID,
+		"username": username,
 		"role":  role,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(),
 	})

@@ -4,6 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // user model from user collection
 type User struct {
+	// ID represents the unique identifier of a user.
 	ID          primitive.ObjectID `json:"id" bson:"_id"`
 	Username    string             `json:"username" binding:"required"` // unique
 	Email       string             `json:"email" binding:"required"`    // unique

@@ -1,7 +1,10 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 // admin model from user collection
 type Admin struct {
+	ID          primitive.ObjectID `json:"id" bson:"_id"`
 	Username    string `json:"username" binding:"required"` // unique
 	Email       string `json:"email" binding:"required"`    // unique
 	Password    string `json:"password" binding:"required"`
