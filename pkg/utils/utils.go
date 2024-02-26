@@ -3,7 +3,6 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"net/mail"
 
 	"golang.org/x/crypto/bcrypt"
@@ -15,7 +14,6 @@ func HashPassword(password string) string {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("HashPassword: %s\n", string(hash))
 	return string(hash)
 }
 
@@ -40,4 +38,3 @@ func GenerateRandomString(length int) (string, error) {
 	}
 	return hex.EncodeToString(bytes), nil
 }
-
