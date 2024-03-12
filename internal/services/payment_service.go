@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/paymentintent"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type PaymentHandler struct {
@@ -46,17 +46,11 @@ func logStripeError(err error) {
 // @Description Create payment for pet
 // @Endpoint /api/v1/payment/create
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
-	var payment models.PaymentIntent
+	var transaction models.Transaction
 
-	c.BindJSON(&payment)
+	c.BindJSON(&transaction)
 
-	petID, err := primitive.ObjectIDFromHex(payment.PetID)
-	if err != nil {
-		c.JSON(400, gin.H{"success": false, "error": "failed to convert pet ID"})
-		return
-	}
-
-	isSold, err := h.handler.CheckPetStatus(c, petID)
+	isSold, err := h.handler.CheckPetStatus(c, transaction.PetID)
 	if err != nil {
 		c.JSON(400, gin.H{"success": false, "error": "failed to check pet status"})
 		return
@@ -71,45 +65,72 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	stripe.Key = h.env.STRIPE_KEY
 
 	params := &stripe.PaymentIntentParams{
-		Amount:             stripe.Int64(payment.Price * 100),
+		Amount:             stripe.Int64(transaction.Price * 100),
 		Currency:           stripe.String(string(stripe.CurrencyTHB)),
 		PaymentMethodTypes: stripe.StringSlice([]string{"card", "promptpay"}),
 	}
 
 	// Add metadata
-	params.AddMetadata("pet_id", payment.PetID)
-	params.AddMetadata("seller_id", payment.SellerID)
-	params.AddMetadata("buyer_id", payment.BuyerID)
+	params.AddMetadata("pet_id", transaction.PetID.Hex())
+	params.AddMetadata("seller_id", transaction.SellerID.Hex())
+	params.AddMetadata("buyer_id", transaction.BuyerID.Hex())
 
 	pi, err := paymentintent.New(params)
 	if err != nil {
 		logStripeError(err)
-		c.JSON(400, gin.H{"success": false, "error": "failed to create payment"})
+		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
 		return
 	}
-
-	// convert petID to primitive.ObjectID
-	petID, err1 := primitive.ObjectIDFromHex(payment.PetID)
-
 	// Update pet status
-	_, err2 := h.handler.UpdatePetStatus(c, petID, true)
+	_, err = h.handler.UpdatePetStatus(c, transaction.PetID, true)
 
 	// Check if there is an error
-	if err1 != nil || err2 != nil {
-		// cancel payment intent
+	if err != nil {
+		// cancel transaction intent
 		_, err := paymentintent.Cancel(pi.ID, nil)
 		if err != nil {
-			c.JSON(400, gin.H{"success": false, "error": "failed to cancel payment"})
+			c.JSON(400, gin.H{"success": false, "error": "failed to cancel transaction"})
 			return
 		}
-		c.JSON(400, gin.H{"success": false, "error": "failed to create payment"})
+		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
 		return
 	}
 
-	// Add payment ID to payment model
-	payment.ID = pi.ID
+	// Add transaction ID to transaction model
+	transaction.PaymentID = pi.ID
 
-	c.JSON(200, gin.H{"success": true, "data": payment})
+	// Add timestamp
+	transaction.Timestamp = time.Now()
+
+	// Add transaction status
+	transaction.Status = "pending"
+
+	// Add transaction to database
+	_, err = h.handler.CreateTransaction(c, &transaction)
+
+	if err != nil {
+		// rollback
+		_, err1 := h.handler.UpdatePetStatus(c, transaction.PetID, false)
+		if err1 != nil {
+			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
+			return
+		}
+		// cancel transaction intent
+		_, err2 := paymentintent.Cancel(pi.ID, nil)
+		if err2 != nil {
+			c.JSON(400, gin.H{"success": false, "error": "failed to cancel transaction"})
+			return
+		}
+		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
+		return
+	}
+
+	res := bson.M{
+		"transaction_id": transaction.ID.Hex(),
+		"payment_id":     pi.ID,
+	}
+
+	c.JSON(200, gin.H{"success": true, "data": res})
 
 }
 
@@ -119,17 +140,35 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 // @Description Confirm payment for pet
 // @Endpoint /api/v1/payment/confirm
 func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
-	var transaction models.Transaction
+	var payment models.PaymentIntent
 
-	c.BindJSON(&transaction)
+	c.BindJSON(&payment)
+
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "status", Value: "paid"},
+			{Key: "payment_method", Value: payment.PaymentMethod},
+		}},
+	}
+
+	// Update transaction
+	res, err := h.handler.UpdateTransaction(c, payment.TransactionID, update)
+
+	if err != nil {
+		c.JSON(400, gin.H{"success": false, "error": "failed to update transaction"})
+		return
+	}
+
+	var transaction models.Transaction
+	_ = res.Decode(&transaction)
 
 	// Set Stripe API key
 	stripe.Key = h.env.STRIPE_KEY
 
-	_, err := paymentintent.Confirm(
-		transaction.PaymentID,
+	_, err = paymentintent.Confirm(
+		payment.ID,
 		&stripe.PaymentIntentConfirmParams{
-			PaymentMethod: stripe.String("pm_card_visa"),
+			PaymentMethod: stripe.String("pm_card_th_credit"),
 		},
 	)
 
@@ -137,6 +176,11 @@ func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 	if err != nil {
 		logStripeError(err)
 		// rollback
+		_, err = h.handler.UpdateTransaction(c, payment.TransactionID, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: "failed"}}}})
+		if err != nil {
+			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
+			return
+		}
 		_, err := h.handler.UpdatePetStatus(c, transaction.PetID, false)
 		if err != nil {
 			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
@@ -146,27 +190,12 @@ func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 		return
 	}
 
-	// Add timestamp
-	transaction.Timestamp = time.Now()
-	// Add transaction to database
-	res, err := h.handler.CreateTransaction(c, &transaction)
-	if err != nil {
-		// rollback
-		_, err := h.handler.UpdatePetStatus(c, transaction.PetID, false)
-		if err != nil {
-			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
-			return
-		}
-		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
-		return
-	}
-
-	// ensure update pet status
+	// ensure sold status is true
 	_, err = h.handler.UpdatePetStatus(c, transaction.PetID, true)
 	if err != nil {
 		c.JSON(400, gin.H{"success": false, "error": "failed to update pet status"})
 		return
 	}
 
-	c.JSON(200, gin.H{"success": true, "data": res})
+	c.JSON(200, gin.H{"success": true, "data": map[string]interface{}{"transaction_id": transaction.ID.Hex()}})
 }

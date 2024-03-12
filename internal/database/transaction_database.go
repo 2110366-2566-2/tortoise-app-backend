@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (h *Handler) CreateTransaction(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
@@ -16,6 +17,15 @@ func (h *Handler) CreateTransaction(ctx context.Context, transaction *models.Tra
 	res, err := h.db.Collection("transactions").InsertOne(ctx, transaction)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create transaction")
+	}
+	return res, nil
+}
+
+func (h *Handler) UpdateTransaction(ctx context.Context, transactionID primitive.ObjectID, update bson.D) (*mongo.SingleResult, error) {
+	// Put the transaction into the database
+	res := h.db.Collection("transactions").FindOneAndUpdate(ctx, bson.M{"_id": transactionID}, update, options.FindOneAndUpdate().SetReturnDocument(options.After))
+	if res.Err() != nil {
+		return nil, fmt.Errorf("failed to update transaction")
 	}
 	return res, nil
 }
