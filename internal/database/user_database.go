@@ -124,3 +124,13 @@ func (h *Handler) DeleteOneUser(ctx context.Context, userID string) (*mongo.Dele
 	}
 	return res, nil
 }
+
+func (h *Handler) GetUserByMail(ctx context.Context, data bson.M) (*models.User, error) {
+	var user models.User
+	filter := data
+	err := h.db.Collection("users").FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user: %v", err)
+	}
+	return &user, nil
+}
