@@ -17,8 +17,15 @@ type Transaction struct {
 }
 
 type TransactionWithDetails struct {
-	Transaction	Transaction
-	SellerName string `json:"seller_name"`
-	BuyerName string `json:"buyer_name"`
-	PetName string `json:"pet_name"`
+	Transaction
+	SellerName  string `json:"seller_name"`
+	BuyerName   string `json:"buyer_name"`
+	PetDetail   PetDetail `json:"pet_detail"`
+}
+
+type PetDetail struct {
+	Name 	string `json:"name"`
+	Age  	int32  `json:"age"`
+	Sex  	string `json:"sex"`
+	Species string `json:"species"`
 }

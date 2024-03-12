@@ -10,9 +10,9 @@ import (
 	// "go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetTransactionByID(ctx context.Context, h *Handler, userID primitive.ObjectID, role string) ([]*models.Transaction, error) {
+func GetTransactionByID(ctx context.Context, h *Handler, userID primitive.ObjectID, role string) ([]*models.TransactionWithDetails, error) {
 
-	var transactions []*models.Transaction
+	var transactions []*models.TransactionWithDetails
 	var filter bson.M
 
 	if role == "seller" {
@@ -32,7 +32,8 @@ func GetTransactionByID(ctx context.Context, h *Handler, userID primitive.Object
         if err := cursor.Decode(&transaction); err != nil {
             return nil, err
         }
-        transactions = append(transactions, &transaction)
+		transactionWithDetails := models.TransactionWithDetails{Transaction: transaction}
+        transactions = append(transactions, &transactionWithDetails)
     }
 
     if err := cursor.Err(); err != nil {
