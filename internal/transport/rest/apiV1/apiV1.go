@@ -35,6 +35,13 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 	r.GET("/master/categories", petHandler.GetCategories)
 }
 
+func AccountServices(r *gin.RouterGroup, h *database.Handler) {
+	r.GET("/transactions-history", func(c *gin.Context) {
+		services.GetTransactions(c, h)
+	})
+}
+
+
 func UserServices(r *gin.RouterGroup, h *database.Handler) {
 
 	userHandler := services.NewUserHandler(h)
@@ -55,6 +62,7 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
     // r.GET("/token/session", func(c *gin.Context) {
     //     services.GetSessionToken(c, h)
     // })
+	
 }
 
 func SellerServices(r *gin.RouterGroup, h *database.Handler) {
@@ -114,6 +122,11 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	bankGroup := apiV1.Group("/bank")
 	bankGroup.Use(roleMiddleware("seller", "admin"))
 	SellerServices(bankGroup, h)
+
+	// User and Admin can access
+	accountServices := apiV1.Group("/account")
+	accountServices.Use(roleMiddleware("seller", "admin", "buyer"))
+	AccountServices(accountServices, h)
 
 	apiV1.Group("/seller").Use(roleMiddleware("seller", "admin")).GET("/", func(c *gin.Context) {
 		TestSellerServices()
