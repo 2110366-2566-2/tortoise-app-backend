@@ -55,17 +55,25 @@ func SellerServices(r *gin.RouterGroup, h *database.Handler) {
 	r.DELETE("/:sellerID", sellerHandler.DeleteBankAccount)
 }
 
+func PaymentServices(r *gin.RouterGroup, h *database.Handler, env *configs.EnvVars) {
+	// Create a new buyer handler
+	buyerHandler := services.NewPaymentHandler(h, env)
+
+	// Set up routes
+	r.POST("/create", buyerHandler.CreatePayment)
+}
+
 // Services for Testing
 func TestSellerServices() {
-	log.Println("Seller services! ...\n")
+	log.Println("Seller services! ...")
 }
 func TestAdminServices() {
-	log.Println("Admin services! ...\n")
+	log.Println("Admin services! ...")
 }
 
 // End of Tested Services
 
-func SetupRoutes(r *gin.Engine, h *database.Handler) {
+func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	env, err := configs.LoadConfig()
 	if err != nil {
 		panic(err)
@@ -93,6 +101,11 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	bankGroup := apiV1.Group("/bank")
 	bankGroup.Use(roleMiddleware("seller", "admin"))
 	SellerServices(bankGroup, h)
+
+	// Buyer can access
+	paymentGroup := apiV1.Group("/payment")
+	paymentGroup.Use(roleMiddleware("buyer"))
+	PaymentServices(paymentGroup, h, env)
 
 	apiV1.Group("/seller").Use(roleMiddleware("seller", "admin")).GET("/", func(c *gin.Context) {
 		TestSellerServices()
