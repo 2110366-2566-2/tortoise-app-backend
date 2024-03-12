@@ -154,3 +154,16 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
+// GetTransactions godoc
+// @Method GET
+// @Summary Get transactions
+// @Description Get transactions of user
+// @Endpoint /api/v1/transactions/:userID
+func (h *UserHandler) GetTransactions(c *gin.Context) {
+	transactions, err := h.handler.GetTransactionByUserID(c, c.Param("userID"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"success": true, "data": transactions, "count": len(*transactions)})
+}
