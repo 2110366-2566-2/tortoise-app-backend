@@ -48,7 +48,7 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 		tx.PetDetail = pet_detail
 	}
 
-	c.JSON(http.StatusOK, transactions)
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": transactions, "role": role})
 }
 
 // GetTransactionByTransactionID godoc
