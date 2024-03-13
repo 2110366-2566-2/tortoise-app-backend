@@ -44,33 +44,35 @@ func (h *Handler) GetTransactionByTransactionID(ctx context.Context, transaction
 	return &transaction, nil
 }
 
-func (h *Handler) GetTransactionByUserID(ctx context.Context, userID string) (*[]models.Transaction, error) {
-	var transactions []models.Transaction
+func (h *Handler) GetTransactionByUserID(ctx context.Context, userID primitive.ObjectID, role string) ([]*models.TransactionWithDetails, error) {
 
-	// get role
-	role, err := h.GetUserRole(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user role: %v", err)
-	}
-
+	var transactions []*models.TransactionWithDetails
 	var filter bson.M
+
 	if role == "seller" {
 		filter = bson.M{"seller_id": userID}
-	} else if role == "buyer" {
+	} else {
 		filter = bson.M{"buyer_id": userID}
 	}
+
 	cursor, err := h.db.Collection("transactions").Find(ctx, filter)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find transactions: %v", err)
+		return nil, err
 	}
 	defer cursor.Close(ctx)
+
 	for cursor.Next(ctx) {
 		var transaction models.Transaction
 		if err := cursor.Decode(&transaction); err != nil {
-			return nil, fmt.Errorf("failed to decode transaction: %v", err)
+			return nil, err
 		}
-		transactions = append(transactions, transaction)
+		transactionWithDetails := models.TransactionWithDetails{Transaction: transaction}
+		transactions = append(transactions, &transactionWithDetails)
 	}
 
-	return &transactions, nil
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }

@@ -51,8 +51,8 @@ func TransactionServices(r *gin.RouterGroup, h *database.Handler) {
 	// Create a new transaction handler
 	transactionHandler := services.NewTransactionHandler(h)
 
-	r.GET("/:userID", transactionHandler.GetAllTransactions)
-	r.GET("/detail/:transactionID", transactionHandler.GetTransactionByTransactionID)
+	r.GET("/history", transactionHandler.GetTransactions)
+	r.GET("/:transactionID", transactionHandler.GetTransactionByTransactionID)
 }
 
 func BankServices(r *gin.RouterGroup, h *database.Handler) {

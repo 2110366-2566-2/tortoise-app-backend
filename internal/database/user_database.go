@@ -69,19 +69,6 @@ func (h *Handler) GetUserByUserID(ctx context.Context, userID string) (*models.U
 	return &user, nil
 }
 
-// Get role of user
-func (h *Handler) GetUserRole(ctx context.Context, userID string) (string, error) {
-	user, err := h.GetUserByUserID(ctx, userID)
-	if err != nil {
-		return "", fmt.Errorf("failed to get user: %v", err)
-	}
-	if user.Role == 1 {
-		return "seller", nil
-	}
-	return "buyer", nil
-
-}
-
 // UpdateOneUser updates a user
 func (h *Handler) UpdateOneUser(ctx context.Context, userID string, data bson.M) (*mongo.SingleResult, error) {
 	// Convert BSON M data to BSON B (bson.D)
