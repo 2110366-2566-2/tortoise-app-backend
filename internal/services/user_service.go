@@ -152,3 +152,42 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
+
+// UpdateForgotPassword godoc
+// @Method PUT
+// @Summary Update user's password by email
+// @Description Update user's password by email
+// @Endpoint /api/v1/user/forgotpasswd
+func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
+	var reset models.ResetPassword
+	if err := c.BindJSON(&reset); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind data"})
+		return
+	}
+
+	var user *models.User
+	user, err := h.handler.GetUserByMail(c, bson.M{"email": reset.Email})
+	if err != nil {
+		log.Println("Error: ", err)
+		errorMsg := "failed to get user by email"
+		if err.Error() == "mongo: no documents in result" {
+			errorMsg = "user not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+		return
+	}
+
+	// Update user's password
+	update := bson.M{
+		"password": reset.Password,
+	}
+	res, err := h.handler.UpdateOneUser(c, user.ID.Hex(), update)
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update user's password"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": res})
+
+}

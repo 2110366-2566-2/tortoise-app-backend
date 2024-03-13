@@ -65,6 +65,8 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/recoverusername", userHandler.RecoveryUsername)
 	r.POST("/checkvalidemail", userHandler.CheckMail)
 	r.POST("/sentotp", userHandler.SentOTP)
+	r.POST("/checkotp", userHandler.ValidateOTP)
+	r.POST("/resetforgotpasswd", userHandler.UpdateForgotPassword)
 
 }
 
@@ -92,7 +94,6 @@ func PaymentServices(r *gin.RouterGroup, h *database.Handler, env configs.EnvVar
 
 	// Set up routes
 	r.POST("/create", buyerHandler.CreatePayment)
-	// r.POST("/create", buyerHandler.AA)
 	r.POST("/confirm", buyerHandler.ConfirmPayment)
 }
 
