@@ -11,8 +11,9 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (h *UserHandler) RecoveryUsername(c *gin.Context) {
@@ -76,7 +77,7 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 
 	rand.Seed(time.Now().UnixNano())
 	otp := fmt.Sprintf("%06d", rand.Intn(999999))
-	
+
 	hashOtp := utils.HashPassword(otp)
 
 	from := "petpal.tortoise@gmail.com"
@@ -96,13 +97,14 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	}
 
 	log.Println("OTP: ", otp)
-	
+
 	// Remove old OTP in database
-	err = h.handler.DeleteOTP(c, to)
+	// err = h.handler.DeleteOTP(c, to)
 
 	// Add OTP to database
 	err = h.handler.CreateOTP(c, hashOtp, to)
 	if err != nil {
+		log.Println("Error: ", err)
 		c.JSON(500, gin.H{"success": false, "error": "failed to create OTP"})
 		return
 	}
@@ -144,8 +146,6 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	}
 
 	// Check if the OTP is valid
-	log.Println("OTP: ", otp.OTP)
-	log.Println("res.OTP: ", res.OTP)
 	if !utils.ComparePassword(otp.OTP, res.OTP) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "OTP is incorrect"})
 		return
