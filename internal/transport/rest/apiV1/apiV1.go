@@ -92,6 +92,7 @@ func PaymentServices(r *gin.RouterGroup, h *database.Handler, env configs.EnvVar
 
 	// Set up routes
 	r.POST("/create", buyerHandler.CreatePayment)
+	// r.POST("/create", buyerHandler.AA)
 	r.POST("/confirm", buyerHandler.ConfirmPayment)
 }
 
