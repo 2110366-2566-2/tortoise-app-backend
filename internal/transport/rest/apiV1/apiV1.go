@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func PetController(r *gin.RouterGroup, h *database.Handler) {
@@ -41,7 +41,6 @@ func AccountServices(r *gin.RouterGroup, h *database.Handler) {
 	})
 }
 
-
 func UserServices(r *gin.RouterGroup, h *database.Handler) {
 
 	userHandler := services.NewUserHandler(h)
@@ -59,10 +58,10 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.PUT("/passwd/:userID", userHandler.UpdateUserPasswd)
 	r.PUT("/:userID", userHandler.UpdateUser)
 	r.DELETE("/:userID", userHandler.DeleteUser)
-    // r.GET("/token/session", func(c *gin.Context) {
-    //     services.GetSessionToken(c, h)
-    // })
-	
+	// r.GET("/token/session", func(c *gin.Context) {
+	//     services.GetSessionToken(c, h)
+	// })
+	r.POST("/recoverusername", userHandler.Recovery_username)
 }
 
 func SellerServices(r *gin.RouterGroup, h *database.Handler) {
@@ -111,7 +110,7 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 		userID, _ := c.Get("userID")
 		username, _ := c.Get("username")
 		role, _ := c.Get("role")
-		c.JSON(http.StatusOK, gin.H{"userID": userID, "username": username, "role": role })
+		c.JSON(http.StatusOK, gin.H{"userID": userID, "username": username, "role": role})
 	})
 
 	petsGroup := apiV1.Group("/pets")
