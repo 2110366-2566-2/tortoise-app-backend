@@ -40,15 +40,21 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 		seller, _ := h.handler.GetUserByUserID(c, tx.SellerID.Hex())
 		tx.SellerName = seller.FirstName + " " + seller.LastName
 
-		buyer, _ := h.handler.GetUserByUserID(c, tx.SellerID.Hex())
+		buyer, _ := h.handler.GetUserByUserID(c, tx.BuyerID.Hex())
 		tx.BuyerName = buyer.FirstName + " " + buyer.LastName
 
 		pet, _ := h.handler.GetPetByPetID(c, tx.PetID.Hex())
-		pet_detail := models.PetDetail{Name: pet.Name, Age: pet.Age, Sex: pet.Sex, Species: pet.Species}
+		pet_detail := models.PetDetail{Name: pet.Name, Age: pet.Age, Sex: pet.Sex, Species: pet.Species, Media: pet.Media}
 		tx.PetDetail = pet_detail
 	}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": transactions, "role": role})
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"transactions": transactions,
+			"role":         role,
+		},
+	})
 }
 
 // GetTransactionByTransactionID godoc
