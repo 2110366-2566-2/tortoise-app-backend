@@ -25,7 +25,22 @@ func (h *Handler) CreateOTP(ctx context.Context, otp, email string) error {
 		Email:     email,
 		CreatedAt: time.Now(),
 	}
-	_, err := h.db.Collection("otps").InsertOne(ctx, otpData)
+
+	// check if the email already exists
+	count, err := h.db.Collection("otps").CountDocuments(ctx, bson.M{"email": email})
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		// delete the existing OTP
+		err = h.DeleteOTP(ctx, email)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = h.db.Collection("otps").InsertOne(ctx, otpData)
 	if err != nil {
 		return err
 	}

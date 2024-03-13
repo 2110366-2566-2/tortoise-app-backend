@@ -66,7 +66,7 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/checkvalidemail", userHandler.CheckMail)
 	r.POST("/sentotp", userHandler.SentOTP)
 	r.POST("/checkotp", userHandler.ValidateOTP)
-	r.POST("/resetforgotpasswd", userHandler.UpdateForgotPassword)
+	r.POST("/forgotpasswd", userHandler.UpdateForgotPassword)
 
 }
 
