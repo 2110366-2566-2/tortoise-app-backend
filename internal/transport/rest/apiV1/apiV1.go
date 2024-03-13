@@ -36,6 +36,9 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 
 func UserServices(r *gin.RouterGroup, h *database.Handler) {
 
+	// Create a new user handler
+	userHandler := services.NewUserHandler(h)
+
 	// Set up routes
 	r.POST("/login", func(c *gin.Context) {
 		services.LoginHandler(c, h)
@@ -44,6 +47,17 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/register", func(c *gin.Context) {
 		services.RegisterHandler(c, h)
 	})
+
+	r.GET("/:userID", userHandler.GetUserByUserID)
+	r.PUT("/passwd/:userID", userHandler.UpdateUserPasswd)
+	r.PUT("/:userID", userHandler.UpdateUser)
+	r.DELETE("/:userID", userHandler.DeleteUser)
+	// r.GET("/token/session", func(c *gin.Context) {
+	//     services.GetSessionToken(c, h)
+	// })
+	r.POST("/recoverusername", userHandler.RecoveryUsername)
+	r.POST("/checkvalidemail", userHandler.CheckMail)
+	r.POST("/sentotp", userHandler.SentOTP)
 
 }
 
