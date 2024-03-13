@@ -1,7 +1,9 @@
 package services
 
 import (
+	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
@@ -27,8 +29,13 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 	uid, _ := c.Get("userID")
 	role, _ := c.Get("role")
 
+	// type of uid is primitive.ObjectID
+	fmt.Println(uid)
+	fmt.Println("Type of uid: ", reflect.TypeOf(uid))
+	fmt.Println("Type of role: ", reflect.TypeOf(role))
+
 	// Get transactions
-	transactions, err := h.handler.GetTransactionByUserID(c, uid.(primitive.ObjectID), role.(string))
+	transactions, err := h.handler.GetTransactionByID(c, uid.(primitive.ObjectID), role.(string))
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})

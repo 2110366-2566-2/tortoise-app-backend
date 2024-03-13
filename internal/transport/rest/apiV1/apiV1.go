@@ -65,7 +65,7 @@ func TransactionServices(r *gin.RouterGroup, h *database.Handler) {
 	// Create a new transaction handler
 	transactionHandler := services.NewTransactionHandler(h)
 
-	r.GET("/history", transactionHandler.GetTransactions)
+	r.GET("/", transactionHandler.GetTransactions)
 	r.GET("/:transactionID", transactionHandler.GetTransactionByTransactionID)
 }
 
@@ -119,6 +119,7 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	PetController(petsGroup, h)
 	transactionGroup := apiV1.Group("/transactions")
 	transactionGroup.Use(roleMiddleware("seller", "admin", "buyer"))
+	TransactionServices(transactionGroup, h)
 
 	// Seller and Admin can access
 	bankGroup := apiV1.Group("/bank")
