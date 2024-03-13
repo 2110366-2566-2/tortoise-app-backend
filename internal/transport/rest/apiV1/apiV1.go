@@ -12,7 +12,6 @@ import (
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/form3tech-oss/jwt-go"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func PetController(r *gin.RouterGroup, h *database.Handler) {
@@ -35,14 +34,9 @@ func PetController(r *gin.RouterGroup, h *database.Handler) {
 	r.GET("/master/categories", petHandler.GetCategories)
 }
 
-func AccountServices(r *gin.RouterGroup, h *database.Handler) {
-	r.GET("/transactions-history", func(c *gin.Context) {
-		services.GetTransactions(c, h)
-	})
-}
-
 func UserServices(r *gin.RouterGroup, h *database.Handler) {
 
+	// Create a new user handler
 	userHandler := services.NewUserHandler(h)
 
 	// Set up routes
@@ -64,9 +58,18 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/recoverusername", userHandler.RecoveryUsername)
 	r.POST("/checkvalidemail", userHandler.CheckMail)
 	r.POST("/sentotp", userHandler.SentOTP)
+
 }
 
-func SellerServices(r *gin.RouterGroup, h *database.Handler) {
+func TransactionServices(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new transaction handler
+	transactionHandler := services.NewTransactionHandler(h)
+
+	r.GET("/history", transactionHandler.GetTransactions)
+	r.GET("/:transactionID", transactionHandler.GetTransactionByTransactionID)
+}
+
+func BankServices(r *gin.RouterGroup, h *database.Handler) {
 	// Create a new seller handler
 	sellerHandler := services.NewSellerHandler(h)
 
@@ -74,6 +77,15 @@ func SellerServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/:sellerID", sellerHandler.AddBankAccount)
 	r.GET("/:sellerID", sellerHandler.GetBankAccount)
 	r.DELETE("/:sellerID", sellerHandler.DeleteBankAccount)
+}
+
+func PaymentServices(r *gin.RouterGroup, h *database.Handler, env configs.EnvVars) {
+	// Create a new buyer handler
+	buyerHandler := services.NewPaymentHandler(h, env)
+
+	// Set up routes
+	r.POST("/create", buyerHandler.CreatePayment)
+	r.POST("/confirm", buyerHandler.ConfirmPayment)
 }
 
 // Services for Testing
@@ -86,11 +98,7 @@ func TestAdminServices() {
 
 // End of Tested Services
 
-func SetupRoutes(r *gin.Engine, h *database.Handler) {
-	env, err := configs.LoadConfig()
-	if err != nil {
-		panic(err)
-	}
+func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 
 	// Set up routes
 	apiV1 := r.Group("/api/v1")
@@ -106,32 +114,25 @@ func SetupRoutes(r *gin.Engine, h *database.Handler) {
 	apiV1.Use(jwtMiddleware(env))
 
 	// Seller and Admin and Buyer can access
-
-	// Get token session
-	apiV1.GET("/token/session", roleMiddleware("seller", "admin", "buyer"), func(c *gin.Context) {
-		userID, _ := c.Get("userID")
-		username, _ := c.Get("username")
-		role, _ := c.Get("role")
-		c.JSON(http.StatusOK, gin.H{"userID": userID, "username": username, "role": role})
-	})
-
 	petsGroup := apiV1.Group("/pets")
 	petsGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	PetController(petsGroup, h)
+	transactionGroup := apiV1.Group("/transactions")
+	transactionGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 
 	// Seller and Admin can access
 	bankGroup := apiV1.Group("/bank")
 	bankGroup.Use(roleMiddleware("seller", "admin"))
-	SellerServices(bankGroup, h)
+	BankServices(bankGroup, h)
 
-	// User and Admin can access
-	accountServices := apiV1.Group("/account")
-	accountServices.Use(roleMiddleware("seller", "admin", "buyer"))
-	AccountServices(accountServices, h)
+	// Buyer and Admin can access
+	paymentGroup := apiV1.Group("/payment")
+	paymentGroup.Use(roleMiddleware("buyer", "admin"))
+	PaymentServices(paymentGroup, h, env)
 
-	apiV1.Group("/seller").Use(roleMiddleware("seller", "admin")).GET("/", func(c *gin.Context) {
-		TestSellerServices()
-	})
+	// apiV1.Group("/seller").Use(roleMiddleware("seller", "admin")).GET("/", func(c *gin.Context) {
+	// 	TestSellerServices()
+	// })
 
 	// Admin can access
 	apiV1.Group("/admin").Use(roleMiddleware("admin")).GET("/", func(c *gin.Context) {
@@ -179,16 +180,12 @@ func jwtMiddleware(env configs.EnvVars) gin.HandlerFunc {
 			return
 		}
 
-		// Extract from the token
+		// Extract the role from the token
 		claims := token.Claims.(jwt.MapClaims)
-		userID, _ := primitive.ObjectIDFromHex(claims["userID"].(string))
-		username := claims["username"].(string)
 		role := claims["role"].(string)
 
 		// Pass the role to the next middleware/handler
 		c.Set("role", role)
-		c.Set("userID", userID)
-		c.Set("username", username)
 
 		c.Next()
 	}
