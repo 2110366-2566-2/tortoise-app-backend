@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -48,17 +49,23 @@ func logStripeError(err error) {
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	var transaction models.Transaction
 
-	c.BindJSON(&transaction)
+	if err := c.ShouldBindJSON(&transaction); err != nil {
+		log.Println("failed to bind JSON: ", err)
+		c.JSON(400, gin.H{"success": false, "error": "failed to bind JSON"})
+		return // Return here
+	}
 
 	isSold, err := h.handler.CheckPetStatus(c, transaction.PetID)
 	if err != nil {
+		log.Println("failed to check pet status: ", err)
 		c.JSON(400, gin.H{"success": false, "error": "failed to check pet status"})
-		return
+		return // Return here
 	}
 
 	if isSold {
+		log.Println("pet is not available")
 		c.JSON(400, gin.H{"success": false, "error": "pet is not available"})
-		return
+		return // Return here
 	}
 
 	// Set Stripe API key
@@ -78,8 +85,9 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	pi, err := paymentintent.New(params)
 	if err != nil {
 		logStripeError(err)
+		// log.Println("failed to create transaction: ", err)
 		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
-		return
+		return // Return here
 	}
 	// Update pet status
 	_, err = h.handler.UpdatePetStatus(c, transaction.PetID, true)
@@ -87,13 +95,14 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	// Check if there is an error
 	if err != nil {
 		// cancel transaction intent
+		log.Println("failed to cancel transaction")
 		_, err := paymentintent.Cancel(pi.ID, nil)
 		if err != nil {
 			c.JSON(400, gin.H{"success": false, "error": "failed to cancel transaction"})
-			return
+			return // Return here
 		}
 		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
-		return
+		return // Return here
 	}
 
 	// Add transaction ID to transaction model
@@ -109,20 +118,21 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	_, err = h.handler.CreateTransaction(c, &transaction)
 
 	if err != nil {
+		fmt.Println("failed to create transaction: ", err)
 		// rollback
 		_, err1 := h.handler.UpdatePetStatus(c, transaction.PetID, false)
 		if err1 != nil {
 			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
-			return
+			return // Return here
 		}
 		// cancel transaction intent
 		_, err2 := paymentintent.Cancel(pi.ID, nil)
 		if err2 != nil {
 			c.JSON(400, gin.H{"success": false, "error": "failed to cancel transaction"})
-			return
+			return // Return here
 		}
 		c.JSON(400, gin.H{"success": false, "error": "failed to create transaction"})
-		return
+		return // Return here
 	}
 
 	res := bson.M{
@@ -131,7 +141,10 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"success": true, "data": res})
+}
 
+func (h *PaymentHandler) AA(c *gin.Context) {
+	// Set Stripe API key
 }
 
 // ConfirmPayment godoc
@@ -156,7 +169,7 @@ func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 
 	if err != nil {
 		c.JSON(400, gin.H{"success": false, "error": "failed to update transaction"})
-		return
+		return // Return here
 	}
 
 	var transaction models.Transaction
@@ -170,10 +183,19 @@ func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 	// Set Stripe API key
 	stripe.Key = h.env.STRIPE_KEY
 
+	var PaymentMethod string
+
+	if transaction.PaymentMethod == "promptpay" {
+		// PaymentMethod = "promptpay"
+		PaymentMethod = "pm_card_th_credit"
+	} else {
+		PaymentMethod = "pm_card_th_credit"
+	}
+
 	_, err = paymentintent.Confirm(
 		payment.ID,
 		&stripe.PaymentIntentConfirmParams{
-			PaymentMethod: stripe.String("pm_card_th_credit"),
+			PaymentMethod: stripe.String(PaymentMethod),
 		},
 	)
 
@@ -184,22 +206,22 @@ func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 		_, err = h.handler.UpdateTransaction(c, payment.TransactionID, bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: "failed"}}}})
 		if err != nil {
 			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
-			return
+			return // Return here
 		}
 		_, err := h.handler.UpdatePetStatus(c, transaction.PetID, false)
 		if err != nil {
 			c.JSON(400, gin.H{"success": false, "error": "failed to rollback"})
-			return
+			return // Return here
 		}
 		c.JSON(400, gin.H{"success": false, "error": "failed to confirm payment"})
-		return
+		return // Return here
 	}
 
 	// ensure sold status is true
 	_, err = h.handler.UpdatePetStatus(c, transaction.PetID, true)
 	if err != nil {
 		c.JSON(400, gin.H{"success": false, "error": "failed to update pet status"})
-		return
+		return // Return here
 	}
 
 	c.JSON(200, gin.H{"success": true, "data": map[string]interface{}{"transaction_id": transaction.ID.Hex()}})

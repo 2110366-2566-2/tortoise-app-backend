@@ -44,4 +44,5 @@ type PetDetail struct {
 	Age     int32  `json:"age"`
 	Sex     string `json:"sex"`
 	Species string `json:"species"`
+	Media   string `json:"media"`
 }

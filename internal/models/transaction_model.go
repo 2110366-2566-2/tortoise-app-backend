@@ -14,9 +14,9 @@ type Transaction struct {
 	BuyerID       primitive.ObjectID `json:"buyer_id" bson:"buyer_id" binding:"required"`
 	PaymentID     string             `json:"payment_id" bson:"payment_id"`
 	Price         int64              `json:"price" binding:"required"`
-	PaymentMethod string             `json:"payment_method" bson:"payment_method" binding:"required"`
-	Status        string             `json:"status" binding:"required"`
-	Timestamp     time.Time          `json:"timestamp" binding:"required"`
+	PaymentMethod string             `json:"payment_method" bson:"payment_method"`
+	Status        string             `json:"status"`
+	Timestamp     time.Time          `json:"timestamp"`
 }
 
 type PaymentIntent struct {
