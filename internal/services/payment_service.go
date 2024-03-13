@@ -173,7 +173,12 @@ func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 	}
 
 	var transaction models.Transaction
-	_ = res.Decode(&transaction)
+
+	err = res.Decode(&transaction)
+	if err != nil {
+		c.JSON(400, gin.H{"success": false, "error": "failed to decode transaction"})
+		return
+	}
 
 	// Set Stripe API key
 	stripe.Key = h.env.STRIPE_KEY

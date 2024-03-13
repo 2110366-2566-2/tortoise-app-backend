@@ -44,7 +44,7 @@ func (h *Handler) GetTransactionByTransactionID(ctx context.Context, transaction
 	return &transaction, nil
 }
 
-func (h *Handler) GetTransactionByUserID(ctx context.Context, userID primitive.ObjectID, role string) ([]*models.TransactionWithDetails, error) {
+func (h *Handler) GetTransactionByID(ctx context.Context, userID primitive.ObjectID, role string) ([]*models.TransactionWithDetails, error) {
 
 	var transactions []*models.TransactionWithDetails
 	var filter bson.M
