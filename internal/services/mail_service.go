@@ -1,17 +1,18 @@
 package services
 
 import (
+	"fmt"
 	"log"
-	"math/rand/v2"
+	"math/rand"
 	"net/http"
 	"net/smtp"
-	"strconv"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"time"
 )
 
 func (h *UserHandler) RecoveryUsername(c *gin.Context) {
@@ -72,8 +73,10 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	}
 
 	to := user.Email
-	otp := strconv.Itoa(rand.IntN(999999))
-	// hash the otp
+
+	rand.Seed(time.Now().UnixNano())
+	otp := fmt.Sprintf("%06d", rand.Intn(999999))
+	
 	hashOtp := utils.HashPassword(otp)
 
 	from := "petpal.tortoise@gmail.com"
@@ -93,6 +96,9 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	}
 
 	log.Println("OTP: ", otp)
+	
+	// Remove old OTP in database
+	err = h.handler.DeleteOTP(c, to)
 
 	// Add OTP to database
 	err = h.handler.CreateOTP(c, hashOtp, to)

@@ -31,3 +31,12 @@ func (h *Handler) CreateOTP(ctx context.Context, otp, email string) error {
 	}
 	return nil
 }
+
+func (h *Handler) DeleteOTP(ctx context.Context, email string) error {
+	filter := bson.M{"email": email}
+	_, err := h.db.Collection("otps").DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
