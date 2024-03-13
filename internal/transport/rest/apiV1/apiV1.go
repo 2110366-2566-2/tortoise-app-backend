@@ -78,10 +78,10 @@ func SellerServices(r *gin.RouterGroup, h *database.Handler) {
 
 // Services for Testing
 func TestSellerServices() {
-	log.Println("Seller services! ...\n")
+	log.Println("Seller services! ...")
 }
 func TestAdminServices() {
-	log.Println("Admin services! ...\n")
+	log.Println("Admin services! ...")
 }
 
 // End of Tested Services

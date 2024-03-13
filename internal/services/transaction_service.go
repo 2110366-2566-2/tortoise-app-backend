@@ -6,10 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	// "github.com/dgrijalva/jwt-go"
-	//"time"
 	"net/http"
-	// "fmt"
 )
 
 func GetTransactions(c *gin.Context, h *database.Handler) {
@@ -37,5 +34,5 @@ func GetTransactions(c *gin.Context, h *database.Handler) {
 		tx.PetDetail = pet_detail
 	}
 
-	c.JSON(http.StatusOK, transactions)
+	c.JSON(http.StatusOK, gin.H{"role": role, "data": transactions})
 }
