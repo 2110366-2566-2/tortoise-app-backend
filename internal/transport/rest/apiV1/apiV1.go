@@ -61,7 +61,9 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	// r.GET("/token/session", func(c *gin.Context) {
 	//     services.GetSessionToken(c, h)
 	// })
-	r.POST("/recoverusername", userHandler.Recovery_username)
+	r.POST("/recoverusername", userHandler.RecoveryUsername)
+	r.POST("/checkvalidemail", userHandler.CheckMail)
+	r.POST("/sentotp", userHandler.SentOTP)
 }
 
 func SellerServices(r *gin.RouterGroup, h *database.Handler) {
