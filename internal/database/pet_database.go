@@ -162,3 +162,24 @@ func (h *Handler) DeleteOnePet(ctx context.Context, petID string) (*mongo.Delete
 
 	return res, nil
 }
+
+// Check pet status
+func (h *Handler) CheckPetStatus(ctx context.Context, petID primitive.ObjectID) (bool, error) {
+	// get pet
+	pet, err := h.GetPetByPetID(ctx, petID.Hex())
+	if err != nil {
+		return false, fmt.Errorf("failed to get pet: %v", err)
+	}
+	return pet.Is_sold, nil
+}
+
+// Update pet status
+func (h *Handler) UpdatePetStatus(ctx context.Context, petID primitive.ObjectID, status bool) (*mongo.SingleResult, error) {
+	// return updated pet
+	res := h.db.Collection("pets").FindOneAndUpdate(ctx, bson.M{"_id": petID}, bson.D{{Key: "$set", Value: bson.M{"is_sold": status}}}, options.FindOneAndUpdate().SetReturnDocument(options.After))
+	if res.Err() != nil {
+		return nil, fmt.Errorf("failed to update pet: %v", res.Err())
+	}
+
+	return res, nil
+}
