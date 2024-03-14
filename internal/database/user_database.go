@@ -78,9 +78,10 @@ func (h *Handler) UpdateOneUser(ctx context.Context, userID string, data bson.M)
 		// Convert password to String and Hash the password
 		if k == "password" {
 			v = utils.HashPassword(v.(string))
+			updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		} else if k != "old_password" {
+			updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
 		}
-		updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
-
 	}
 	// convert string to objID
 	userObjID, err := primitive.ObjectIDFromHex(userID)
