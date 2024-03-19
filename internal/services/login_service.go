@@ -1,12 +1,13 @@
 package services
 
 import (
+	"time"
+
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"github.com/gin-gonic/gin"
-	"github.com/dgrijalva/jwt-go"
-	"time"
+	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func LoginHandler(c *gin.Context, h *database.Handler) {
@@ -28,7 +29,7 @@ func LoginHandler(c *gin.Context, h *database.Handler) {
 	}
 
 	var userID primitive.ObjectID
-	var username string  
+	var username string
 	var role string
 	// var email string
 	if userRole, ok := user.(*models.User); ok {
@@ -55,10 +56,10 @@ func LoginHandler(c *gin.Context, h *database.Handler) {
 
 	// Create a new token object, specifying signing method and the claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"userID": userID,
+		"userID":   userID,
 		"username": username,
-		"role":  role,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"role":     role,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 	})
 
 	// Sign and get the complete encoded token as a string using the secret

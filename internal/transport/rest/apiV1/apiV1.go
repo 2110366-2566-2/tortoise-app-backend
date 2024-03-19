@@ -46,15 +46,6 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	// Create a new user handler
 	userHandler := services.NewUserHandler(h)
 
-	// Set up routes
-	r.POST("/login", func(c *gin.Context) {
-		services.LoginHandler(c, h)
-	})
-
-	r.POST("/register", func(c *gin.Context) {
-		services.RegisterHandler(c, h)
-	})
-
 	r.GET("/:userID", userHandler.GetUserByUserID)
 	r.PUT("/passwd/:userID", userHandler.UpdateUserPasswd)
 	r.PUT("/:userID", userHandler.UpdateUser)
@@ -67,6 +58,9 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/sentotp", userHandler.SentOTP)
 	r.POST("/checkotp", userHandler.ValidateOTP)
 	r.POST("/forgotpasswd", userHandler.UpdateForgotPassword)
+
+	// Get me
+	r.GET("/me", userHandler.WhoAmI)
 
 }
 
@@ -97,6 +91,17 @@ func PaymentServices(r *gin.RouterGroup, h *database.Handler, env configs.EnvVar
 	r.POST("/confirm", buyerHandler.ConfirmPayment)
 }
 
+func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
+	// login and register
+	r.POST("/login", func(c *gin.Context) {
+		services.LoginHandler(c, h)
+	})
+
+	r.POST("/register", func(c *gin.Context) {
+		services.RegisterHandler(c, h)
+	})
+}
+
 // Services for Testing
 func TestSellerServices() {
 	log.Println("Seller services! ...")
@@ -119,12 +124,19 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 		c.JSON(http.StatusOK, "This is API v1.0.0")
 	})
 
-	//Unauthorized user can access (for register and login)
-	UserServices(apiV1.Group("/user"), h)
-	ReviewServices(apiV1.Group("/review"), h)
+	// ================ Unauthorized routes ================
+
+	UnauthorizedRoutes(apiV1, h)
+
+	// ============ End of Unauthorized routes ============
 
 	// Add JWT middleware to check the token
 	apiV1.Use(jwtMiddleware(env))
+
+	// All user can access
+	userGroup := apiV1.Group("/user")
+	userGroup.Use(roleMiddleware("seller", "admin", "buyer"))
+	UserServices(userGroup, h)
 
 	// Seller and Admin and Buyer can access
 

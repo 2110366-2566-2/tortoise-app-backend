@@ -64,7 +64,7 @@ func (h *Handler) GetUserByUserID(ctx context.Context, userID string) (*models.U
 	filter := bson.M{"_id": userObjID}
 	err = h.db.Collection("users").FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find user: %v", err)
+		return nil, fmt.Errorf("failed to find user")
 	}
 	return &user, nil
 }
