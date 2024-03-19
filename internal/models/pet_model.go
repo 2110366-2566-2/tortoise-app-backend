@@ -38,3 +38,11 @@ type PetCard struct {
 	Seller_name    string             `json:"seller_name"`
 	Seller_surname string             `json:"seller_surname"`
 }
+
+type PetDetail struct {
+	Name    string `json:"name"`
+	Age     int32  `json:"age"`
+	Sex     string `json:"sex"`
+	Species string `json:"species"`
+	Media   string `json:"media"`
+}

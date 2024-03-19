@@ -107,7 +107,16 @@ func (h *Handler) UpdateOnePet(ctx context.Context, petID string, data bson.M) (
 	// Convert BSON M data to BSON B (bson.D)
 	var updateDoc bson.D
 	for k, v := range data {
-		updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		if k == "seller_id" {
+			// convert string to objID
+			v, err := primitive.ObjectIDFromHex(v.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert sellerID to ObjectID: %v", err)
+			}
+			updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		} else {
+			updateDoc = append(updateDoc, bson.E{Key: k, Value: v})
+		}
 	}
 	// convert string to objID
 	petObjID, err := primitive.ObjectIDFromHex(petID)
@@ -149,6 +158,27 @@ func (h *Handler) DeleteOnePet(ctx context.Context, petID string) (*mongo.Delete
 		}
 
 		return nil, fmt.Errorf("failed to delete pet from user's pets: %v", err)
+	}
+
+	return res, nil
+}
+
+// Check pet status
+func (h *Handler) CheckPetStatus(ctx context.Context, petID primitive.ObjectID) (bool, error) {
+	// get pet
+	pet, err := h.GetPetByPetID(ctx, petID.Hex())
+	if err != nil {
+		return false, fmt.Errorf("failed to get pet: %v", err)
+	}
+	return pet.Is_sold, nil
+}
+
+// Update pet status
+func (h *Handler) UpdatePetStatus(ctx context.Context, petID primitive.ObjectID, status bool) (*mongo.SingleResult, error) {
+	// return updated pet
+	res := h.db.Collection("pets").FindOneAndUpdate(ctx, bson.M{"_id": petID}, bson.D{{Key: "$set", Value: bson.M{"is_sold": status}}}, options.FindOneAndUpdate().SetReturnDocument(options.After))
+	if res.Err() != nil {
+		return nil, fmt.Errorf("failed to update pet: %v", res.Err())
 	}
 
 	return res, nil
