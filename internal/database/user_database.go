@@ -44,11 +44,11 @@ func CheckEmailExist(ctx context.Context, h *Handler, user models.User) (bool, e
 }
 
 // CreateUser is a function to create a new user
-func CreateUser(ctx context.Context, h *Handler, user models.User) (primitive.ObjectID, error) {
+func CreateUser(ctx context.Context, h *Handler, user models.User) (*primitive.ObjectID, error) {
 	// Insert the user to the database
 	result, err := h.db.Collection("users").InsertOne(ctx, user)
 	if err != nil {
-		return primitive.ObjectID{}, err
+		return nil, err
 	}
 
 	id := result.InsertedID.(primitive.ObjectID)
@@ -62,18 +62,18 @@ func CreateUser(ctx context.Context, h *Handler, user models.User) (primitive.Ob
 		seller.Pets = []primitive.ObjectID{}
 		_, err = h.db.Collection("sellers").InsertOne(ctx, seller)
 		if err != nil {
-			return primitive.ObjectID{}, err
+			return nil, err
 		}
 	} else if user.Role == 2 {
 		// Insert the buyer to the database
 		user.ID = id
 		_, err = h.db.Collection("buyers").InsertOne(ctx, user)
 		if err != nil {
-			return primitive.ObjectID{}, err
+			return nil, err
 		}
 	}
 
-	return id, nil
+	return &id, nil
 }
 
 // GetUserByUserID returns a user by userID

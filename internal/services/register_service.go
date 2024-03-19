@@ -45,7 +45,7 @@ func RegisterHandler(c *gin.Context, h *database.Handler) {
 		return
 	}
 
-	user.ID = res_id
+	user.ID = *res_id
 
 	c.JSON(200, gin.H{"message": "User created successfully", "user": &user})
 }
