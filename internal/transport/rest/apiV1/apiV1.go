@@ -138,6 +138,10 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	userGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	UserServices(userGroup, h)
 
+	reviewGroup := apiV1.Group("/review")
+	reviewGroup.Use(roleMiddleware("seller", "admin", "buyer"))
+	ReviewServices(reviewGroup, h)
+
 	// Seller and Admin and Buyer can access
 
 	// Get token session
