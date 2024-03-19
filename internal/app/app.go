@@ -39,6 +39,7 @@ func Run(env configs.EnvVars) (func(), error) {
 			quit := make(chan os.Signal, 1)
 			signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 			<-quit
+			fmt.Println()
 			log.Println("Shutdown Server ...")
 
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -88,6 +89,9 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 		Handler: r,
 	}
 
+	// print the ascii art
+	printASCIIArt()
+
 	return srv, func() {
 		log.Println("Closing the database ...")
 		err := database.CloseMongo(db)
@@ -112,4 +116,25 @@ func CORSMiddleware(env configs.EnvVars) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func printASCIIArt() {
+
+	fmt.Println("\x1b[1;31m" + `
+	███╗░░░███╗░█████╗░███╗░░██╗  ░░██╗██╗░░░░░░██████╗░  ██╗░░░░░██╗██╗░░░██╗
+	████╗░████║██╔══██╗████╗░██║  ░██╔╝██║░░░░░░╚════██╗  ██║░░░░░██║██║░░░██║
+	██╔████╔██║███████║██╔██╗██║  ██╔╝░██║█████╗░█████╔╝  ██║░░░░░██║╚██╗░██╔╝
+	██║╚██╔╝██║██╔══██║██║╚████║  ███████║╚════╝░╚═══██╗  ██║░░░░░██║░╚████╔╝░
+	██║░╚═╝░██║██║░░██║██║░╚███║  ╚════██║░░░░░░██████╔╝  ███████╗██║░░╚██╔╝░░
+	╚═╝░░░░░╚═╝╚═╝░░╚═╝╚═╝░░╚══╝  ░░░░░╚═╝░░░░░░╚═════╝░  ╚══════╝╚═╝░░░╚═╝░░░
+	` + "\x1b[0m")
+
+	fmt.Println("\x1b[38;5;172m" + `
+	███████╗░███████╗████████╗██████╗░█████╗░██╗░░░░░
+	██╔══██╗██╔════╝╚══██╔══╝██╔══██╗██╔══██╗██║░░░░░
+	███████╔╝█████╗░░░░██║░░░██████╔╝███████║██║░░░░░
+	██╔═══╝░██╔══╝░░░░░██║░░░██╔═══╝░██╔══██║██║░░░░░
+	██║░░░░░███████╗░░░██║░░░██║░░░░░██║░░██║███████╗
+	╚═╝░░░░░╚══════╝░░░╚═╝░░░╚═╝░░░░░╚═╝░░╚═╝╚══════╝
+    ` + "\x1b[0m")
 }
