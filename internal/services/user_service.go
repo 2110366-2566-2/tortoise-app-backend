@@ -9,6 +9,7 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserHandler struct {
@@ -110,7 +111,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.BindJSON(&data)
 
 	//Check if body have "password field"
-	for k, _ := range data {
+	for k := range data {
 		if k == "password" {
 			c.JSON(400, gin.H{"success": false, "error": "found password field in body"})
 			return
@@ -198,4 +199,28 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": "password updated"})
 
+}
+
+func (h *UserHandler) WhoAmI(c *gin.Context) {
+	userID, exist := c.Get("userID")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+	// convert primitive.ObjectID to string
+	userIDStr := userID.(primitive.ObjectID).Hex()
+
+	// fmt.Println("userID: ", userIDStr)
+	user, err := h.handler.GetUserByUserID(c, userIDStr)
+	if err != nil {
+		log.Println("Error: ", err)
+		errorMsg := "failed to get user by user id"
+		if err.Error() == "failed to find user" {
+			errorMsg = "user not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": user})
 }
