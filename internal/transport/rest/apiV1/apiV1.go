@@ -138,6 +138,10 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	userGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	UserServices(userGroup, h)
 
+	reviewGroup := apiV1.Group("/review")
+	reviewGroup.Use(roleMiddleware("seller", "admin", "buyer"))
+	ReviewServices(reviewGroup, h)
+
 	// Seller and Admin and Buyer can access
 
 	// Get token session
@@ -151,9 +155,14 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	petsGroup := apiV1.Group("/pets")
 	petsGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	PetController(petsGroup, h)
+
 	transactionGroup := apiV1.Group("/transactions")
 	transactionGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	TransactionServices(transactionGroup, h)
+
+	// reveiwGrop := apiV1.Group("/review")
+	// reveiwGrop.Use(roleMiddleware("seller", "admin", "buyer"))
+	// ReviewServices(reveiwGrop, h)
 
 	// Seller and Admin can access
 	bankGroup := apiV1.Group("/bank")
@@ -247,4 +256,14 @@ func roleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 	}
+}
+func ReviewServices(r *gin.RouterGroup, h *database.Handler) {
+
+	// Create a new review handler
+	reviewHandler := services.NewReviewHandler(h)
+
+	// Set up routes
+	r.POST("/create", reviewHandler.CreateReview)
+	r.PUT("/comment/:reviewID", reviewHandler.AddComment)
+	r.GET("/:sellerID", reviewHandler.GetReviewBySeller)
 }
