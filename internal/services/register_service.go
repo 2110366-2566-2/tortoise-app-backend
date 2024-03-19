@@ -38,11 +38,14 @@ func RegisterHandler(c *gin.Context, h *database.Handler) {
 		return
 	}
 
+	res_id, err := database.CreateUser(c, h, user)
 	// Create the user
-	if err := database.CreateUser(c, h, user); err != nil {
+	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
+
+	user.ID = res_id
 
 	c.JSON(200, gin.H{"message": "User created successfully", "user": &user})
 }
