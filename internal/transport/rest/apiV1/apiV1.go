@@ -91,6 +91,15 @@ func PaymentServices(r *gin.RouterGroup, h *database.Handler, env configs.EnvVar
 	r.POST("/confirm", buyerHandler.ConfirmPayment)
 }
 
+func ReportServices(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new report handler
+	reportHandler := services.NewReportHandler(h)
+
+	// Set up routes
+	r.POST("/party",reportHandler.CreatePartyReport)
+	r.POST("/system",reportHandler.CreateSystemReport)
+}
+
 func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
 	// login and register
 	r.POST("/login", func(c *gin.Context) {
@@ -141,6 +150,10 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	reviewGroup := apiV1.Group("/review")
 	reviewGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	ReviewServices(reviewGroup, h)
+
+	reportGroup := apiV1.Group("/report")
+	reportGroup.Use(roleMiddleware("seller", "admin", "buyer"))
+	ReportServices(reportGroup, h)
 
 	// Seller and Admin and Buyer can access
 
