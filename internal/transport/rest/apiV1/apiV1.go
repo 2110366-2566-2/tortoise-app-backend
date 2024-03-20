@@ -102,6 +102,17 @@ func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
 	})
 }
 
+func ReviewServices(r *gin.RouterGroup, h *database.Handler) {
+
+	// Create a new review handler
+	reviewHandler := services.NewReviewHandler(h)
+
+	// Set up routes
+	r.POST("/create", reviewHandler.CreateReview)
+	r.PUT("/comment/:reviewID", reviewHandler.AddComment)
+	r.GET("/:sellerID", reviewHandler.GetReviewBySeller)
+}
+
 // Services for Testing
 func TestSellerServices() {
 	log.Println("Seller services! ...")
@@ -256,14 +267,4 @@ func roleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 
 		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 	}
-}
-func ReviewServices(r *gin.RouterGroup, h *database.Handler) {
-
-	// Create a new review handler
-	reviewHandler := services.NewReviewHandler(h)
-
-	// Set up routes
-	r.POST("/create", reviewHandler.CreateReview)
-	r.PUT("/comment/:reviewID", reviewHandler.AddComment)
-	r.GET("/:sellerID", reviewHandler.GetReviewBySeller)
 }
