@@ -73,6 +73,15 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	}
 	handler := database.NewHandler(db)
 
+	// set gin mode
+	if env.GIN_MODE == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	} else if env.GIN_MODE == "test" {
+		gin.SetMode(gin.TestMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
 	// init the server
 	r := gin.Default()
 
