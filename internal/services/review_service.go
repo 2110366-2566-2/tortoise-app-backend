@@ -40,6 +40,11 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"success": true, "data": &review})
 }
 
+// AddComment godoc
+// @Method POST
+// @Summary Add comment
+// @Description Add comment to review
+// @Endpoint /api/v1/review/:reviewID/comment
 func (h *ReviewHandler) AddComment(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -54,6 +59,11 @@ func (h *ReviewHandler) AddComment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": res})
 }
 
+// GetReviewBySeller godoc
+// @Method GET
+// @Summary Get review by seller
+// @Description Get review by seller id
+// @Endpoint /api/v1/review/:sellerID
 func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
 	reviews, err := h.handler.GetReviewByUserID(c, c.Param("sellerID"))
 	if err != nil {
