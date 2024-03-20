@@ -13,6 +13,7 @@ type EnvVars struct {
 	PORT         string `mapstructure:"PORT"`
 	JWT_SECRET   string `mapstructure:"JWT_SECRET"`
 	STRIPE_KEY   string `mapstructure:"STRIPE_KEY"`
+	GIN_MODE     string `mapstructure:"GIN_MODE"`
 }
 
 func LoadConfig() (config EnvVars, err error) {
@@ -28,6 +29,7 @@ func LoadConfig() (config EnvVars, err error) {
 		PORT:         os.Getenv("PORT"),
 		JWT_SECRET:   os.Getenv("JWT_SECRET"),
 		STRIPE_KEY:   os.Getenv("STRIPE_KEY"),
+		GIN_MODE:     os.Getenv("GIN_MODE"),
 	}
 
 	return config, nil
