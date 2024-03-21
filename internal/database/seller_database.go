@@ -65,3 +65,21 @@ func (h *Handler) DeleteBankAccount(sellerID string) (*mongo.UpdateResult, error
 	}
 	return res, nil
 }
+
+func (h *Handler) ChangeStatus(ctx context.Context, sellerID string, status string) (*mongo.UpdateResult, error) {
+	// Convert sellerID to ObjectID
+	sellerObjID, err := primitive.ObjectIDFromHex(sellerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert sellerID to ObjectID: %v", err)
+	}
+
+	// Update status of the seller
+	filter := bson.M{"_id": sellerObjID}
+	update := bson.M{"$set": bson.M{"status": status}}
+	res, err := h.db.Collection("sellers").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update status: %v", err)
+	}
+
+	return res, nil
+}

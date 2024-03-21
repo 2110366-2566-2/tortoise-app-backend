@@ -60,6 +60,7 @@ func CreateUser(ctx context.Context, h *Handler, user models.User) (*primitive.O
 		seller.FirstName = user.FirstName
 		seller.LastName = user.LastName
 		seller.Pets = []primitive.ObjectID{}
+		seller.Status = "unverified"
 		_, err = h.db.Collection("sellers").InsertOne(ctx, seller)
 		if err != nil {
 			return nil, err
