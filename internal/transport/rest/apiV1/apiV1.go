@@ -62,10 +62,7 @@ func UserServices(r *gin.RouterGroup, h *database.Handler) {
 	// r.GET("/token/session", func(c *gin.Context) {
 	//     services.GetSessionToken(c, h)
 	// })
-	r.POST("/recoverusername", userHandler.RecoveryUsername)
-	r.POST("/checkvalidemail", userHandler.CheckMail)
-	r.POST("/sentotp", userHandler.SentOTP)
-	r.POST("/checkotp", userHandler.ValidateOTP)
+
 	r.POST("/forgotpasswd", userHandler.UpdateForgotPassword)
 
 	// Get me
@@ -118,6 +115,16 @@ func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/register", func(c *gin.Context) {
 		services.RegisterHandler(c, h)
 	})
+
+	// user services without token
+	userHandler := services.NewUserHandler(h)
+	user := r.Group("/user")
+
+	user.POST("/sentotp", userHandler.SentOTP)
+	user.POST("/checkotp", userHandler.ValidateOTP)
+
+	user.POST("/recoverusername", userHandler.RecoveryUsername)
+	user.POST("/checkvalidemail", userHandler.CheckMail)
 }
 
 func ReviewServices(r *gin.RouterGroup, h *database.Handler) {

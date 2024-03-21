@@ -10,6 +10,7 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 
 	"time"
 
@@ -151,7 +152,37 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"success": true, "data": user})
+	// Add token
+	var role string
+	if user.Role == 1 {
+		role = "seller"
+	} else if user.Role == 2 {
+		role = "buyer"
+	}
+
+	// Create a new token object, specifying signing method and the claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userID":   user.ID,
+		"username": user.Username,
+		"role":     role,
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	// Sign and get the complete encoded token as a string using the secret
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		c.JSON(500, gin.H{"error": "failed to generate token", "success": false})
+		return
+	}
+
+	// Remove OTP
+	if err = h.handler.DeleteOTP(c, res.Email); err != nil {
+		log.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete OTP"})
+		return
+	}
+
+	c.JSON(200, gin.H{"success": true, "data": user, "token": tokenString})
 
 }
 
