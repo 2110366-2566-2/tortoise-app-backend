@@ -9,6 +9,7 @@ type Seller struct {
 	LastName    string               `json:"last_name" bson:"last_name"`
 	Pets        []primitive.ObjectID `json:"pets"`
 	BankAccount BankAccount          `json:"bank_account" bson:"bank_account"`
+	Status      string               `json:"status" bson:"status"`
 }
 
 // BankAccount model

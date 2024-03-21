@@ -145,6 +145,11 @@ func AdminServices(r *gin.RouterGroup, h *database.Handler) {
 		})
 	})
 
+	// Approve seller
+	r.POST("/approve-seller/:sellerID", func(c *gin.Context) {
+		services.ApproveSeller(c, h)
+	})
+
 }
 
 // End of Tested Services
