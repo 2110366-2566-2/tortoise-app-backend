@@ -166,16 +166,8 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 		return
 	}
 
-	// Delete OTP
-	err := h.handler.DeleteOTP(c, reset.Email)
-	if err != nil {
-		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete OTP"})
-		return
-	}
-
 	var user *models.User
-	user, err = h.handler.GetUserByMail(c, bson.M{"email": reset.Email})
+	user, err := h.handler.GetUserByMail(c, bson.M{"email": reset.Email})
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get user by email"
@@ -183,6 +175,17 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 			errorMsg = "user not found"
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+		return
+	}
+
+	// validate user_id with token
+	IDFromToken, exist := c.Get("userID")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+	if IDFromToken.(primitive.ObjectID) != user.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
 		return
 	}
 
