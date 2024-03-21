@@ -201,6 +201,11 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 
 }
 
+// WhoAmI godoc
+// @Method GET
+// @Summary Get my profile
+// @Description Get my profile
+// @Endpoint /api/v1/user/me
 func (h *UserHandler) WhoAmI(c *gin.Context) {
 	userID, exist := c.Get("userID")
 	if !exist {

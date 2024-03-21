@@ -111,6 +111,7 @@ func ReviewServices(r *gin.RouterGroup, h *database.Handler) {
 	r.POST("/create", reviewHandler.CreateReview)
 	r.PUT("/comment/:reviewID", reviewHandler.AddComment)
 	r.GET("/:sellerID", reviewHandler.GetReviewBySeller)
+	r.DELETE("/:reviewID", reviewHandler.DeleteReview)
 }
 
 // Services for Testing
