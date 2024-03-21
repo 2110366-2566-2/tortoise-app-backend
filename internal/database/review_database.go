@@ -57,6 +57,19 @@ func (h *Handler) GetReviewByUserID(ctx context.Context, UserID string) (*[]mode
 	return &reviews, nil
 }
 
+func (h *Handler) GetReviewByReviewID(ctx context.Context, reviewID string) (*models.Review, error) {
+	reviewObjID, err := primitive.ObjectIDFromHex(reviewID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert reviewID to ObjectID: %v", err)
+	}
+	filter := bson.M{"_id": reviewObjID}
+	var review models.Review
+	if err := h.db.Collection("reviews").FindOne(ctx, filter).Decode(&review); err != nil {
+		return nil, fmt.Errorf("failed to find review: %v", err)
+	}
+	return &review, nil
+}
+
 func (h *Handler) CreateComment(ctx context.Context, reviewID string, comment models.Comments) (*models.Review, error) {
 	// convert string to objID
 	// var updateDoc bson.D

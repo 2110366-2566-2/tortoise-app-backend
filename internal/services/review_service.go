@@ -91,7 +91,7 @@ func (h *ReviewHandler) AddComment(c *gin.Context) {
 // @Method GET
 // @Summary Get review by seller
 // @Description Get review by seller id
-// @Endpoint /api/v1/review/:sellerID
+// @Endpoint /api/v1/review/seller/:sellerID
 func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
 	reviews, err := h.handler.GetReviewByUserID(c, c.Param("sellerID"))
 	if err != nil {
@@ -105,6 +105,25 @@ func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*reviews), "data": &reviews})
+}
+
+// GetReviewByID godoc
+// @Method GET
+// @Summary Get review by review id
+// @Description Get review by review id
+// @Endpoint /api/v1/review/:reviewID
+func (h *ReviewHandler) GetReviewByID(c *gin.Context) {
+	review, err := h.handler.GetReviewByReviewID(c, c.Param("reviewID"))
+	if err != nil {
+		log.Println("Error: ", err)
+		errorMsg := "failed to get review by id"
+		if err.Error() == "review not found" {
+			errorMsg = "review not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": review})
 }
 
 // DeleteReview godoc
