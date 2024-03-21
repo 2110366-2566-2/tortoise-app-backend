@@ -3,6 +3,7 @@ package services
 import (
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
@@ -17,23 +18,6 @@ type ReportHandler struct {
 func NewReportHandler(handler *database.Handler) *ReportHandler {
 	return &ReportHandler{handler: handler}
 }
-
-// func (h *ReviewHandler) CreateReview(c *gin.Context) {
-// 	var review models.Review
-// 	if err := c.BindJSON(&review); err != nil {
-// 		log.Println("Error: ", err)
-// 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind Review"})
-// 		return
-// 	}
-// 	_, err := h.handler.CreateReview(c, &review)
-// 	if err != nil {
-// 		log.Println("Error: ", err)
-// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusCreated, gin.H{"success": true, "data": &review})
-// }
 
 func (h *ReportHandler) CreatePartyReport(c *gin.Context) {
 	var report models.PartyReport
@@ -68,31 +52,38 @@ func (h *ReportHandler) CreateSystemReport(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{"success": true, "data": &report})
 }
-// func (h *ReviewHandler) AddComment(c *gin.Context) {
-// 	var data bson.M
-// 	c.BindJSON(&data)
 
-// 	res, err := h.handler.CreateComment(c, c.Param("reviewID"), data)
-// 	if err != nil {
-// 		log.Println("Error: ", err)
-// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to add comment"})
-// 		return
-// 	}
-// 	// log result
-// 	c.JSON(http.StatusOK, gin.H{"success": true, "data": res})
-// }
+func (h *ReportHandler) GetReport(c *gin.Context) {
+    category := c.Query("category")
+    is_solved_str := c.Query("is_solved")
 
-// func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
-// 	reviews, err := h.handler.GetReviewByUserID(c, c.Param("sellerID"))
-// 	if err != nil {
-// 		log.Println("Error: ", err)
-// 		errorMsg := "failed to get reviews by seller"
-// 		if err.Error() == "seller not found" {
-// 			errorMsg = "seller not found"
-// 		}
-// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
-// 		return
-// 	}
+    var is_solved *bool
+    if is_solved_str != "" {
+        b, err := strconv.ParseBool(is_solved_str)
+        if err != nil {
+            log.Println("Error: ", err)
+            c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "incorrect is_solved"})
+            return
+        }
+        is_solved = &b
+    }
 
-// 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*reviews), "data": &reviews})
-// }
+    partyReports, systemReports, err := h.handler.GetReport(c, category, is_solved)
+    if err != nil {
+        log.Println("Error: ", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "incorrect category"})
+        return
+    }
+
+    if category == "party" {
+        c.JSON(http.StatusOK, gin.H{"success": true, "PartyReports count": len(*partyReports),"reports (category: party)": &partyReports})
+    }
+    if category == "system" {
+        c.JSON(http.StatusOK, gin.H{"success": true, "SystemReports count": len(*systemReports),"reports (category: system)": &systemReports})
+    }
+    if category == "all" || category == "" {
+        c.JSON(http.StatusOK, gin.H{"success": true, "PartyReports count": len(*partyReports),"SystemReports count": len(*systemReports),"reports (category: party)": &partyReports, 
+        "reports (category: system)": &systemReports})
+    }
+}
+
