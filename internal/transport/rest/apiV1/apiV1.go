@@ -14,6 +14,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+// Services for Testing
+func TestSellerServices() {
+	log.Println("Seller services! ...")
+}
+// func TestAdminServices() {
+// 	log.Println("Admin services! ...")
+// }
 
 func PetController(r *gin.RouterGroup, h *database.Handler) {
 	// Create a new pet handler
@@ -91,6 +98,15 @@ func PaymentServices(r *gin.RouterGroup, h *database.Handler, env configs.EnvVar
 	r.POST("/confirm", buyerHandler.ConfirmPayment)
 }
 
+func ReportServices(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new report handler
+	reportHandler := services.NewReportHandler(h)
+
+	// Set up routes
+	r.POST("/party",reportHandler.CreatePartyReport)
+	r.POST("/system",reportHandler.CreateSystemReport)
+}
+
 func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
 	// login and register
 	r.POST("/login", func(c *gin.Context) {
@@ -113,13 +129,20 @@ func ReviewServices(r *gin.RouterGroup, h *database.Handler) {
 	r.GET("/:sellerID", reviewHandler.GetReviewBySeller)
 }
 
-// Services for Testing
-func TestSellerServices() {
-	log.Println("Seller services! ...")
+func AdminServices(r *gin.RouterGroup, h *database.Handler) {
+	// Create a new admin handler
+	admin_report_handler := services.NewReportHandler(h)
+
+	// Set up routes
+	r.GET("/report", admin_report_handler.GetReport)
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "This is admin service",
+		})
+	})
+
 }
-func TestAdminServices() {
-	log.Println("Admin services! ...")
-}
+
 
 // End of Tested Services
 
@@ -152,6 +175,10 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	reviewGroup := apiV1.Group("/review")
 	reviewGroup.Use(roleMiddleware("seller", "admin", "buyer"))
 	ReviewServices(reviewGroup, h)
+
+	reportGroup := apiV1.Group("/report")
+	reportGroup.Use(roleMiddleware("seller", "admin", "buyer"))
+	ReportServices(reportGroup, h)
 
 	// Seller and Admin and Buyer can access
 
@@ -190,9 +217,14 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	// })
 
 	// Admin can access
-	apiV1.Group("/admin").Use(roleMiddleware("admin")).GET("/", func(c *gin.Context) {
-		TestAdminServices()
-	})
+	adminGrqoup :=	apiV1.Group("/admin")
+	adminGrqoup.Use(roleMiddleware("admin"))
+	AdminServices(adminGrqoup, h)
+
+
+	// apiV1.Group("/admin").Use(roleMiddleware("admin")).GET("/", func(c *gin.Context) {
+	// 	TestAdminServices()
+	// })
 
 	log.Println("Routes are set up successfully!")
 }
