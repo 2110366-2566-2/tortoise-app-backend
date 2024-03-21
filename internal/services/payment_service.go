@@ -143,10 +143,6 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": res})
 }
 
-func (h *PaymentHandler) AA(c *gin.Context) {
-	// Set Stripe API key
-}
-
 // ConfirmPayment godoc
 // @Method POST
 // @Summary Confirm payment

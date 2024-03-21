@@ -14,10 +14,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
 // Services for Testing
 func TestSellerServices() {
 	log.Println("Seller services! ...")
 }
+
 // func TestAdminServices() {
 // 	log.Println("Admin services! ...")
 // }
@@ -103,8 +105,8 @@ func ReportServices(r *gin.RouterGroup, h *database.Handler) {
 	reportHandler := services.NewReportHandler(h)
 
 	// Set up routes
-	r.POST("/party",reportHandler.CreatePartyReport)
-	r.POST("/system",reportHandler.CreateSystemReport)
+	r.POST("/party", reportHandler.CreatePartyReport)
+	r.POST("/system", reportHandler.CreateSystemReport)
 }
 
 func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
@@ -126,7 +128,9 @@ func ReviewServices(r *gin.RouterGroup, h *database.Handler) {
 	// Set up routes
 	r.POST("/create", reviewHandler.CreateReview)
 	r.PUT("/comment/:reviewID", reviewHandler.AddComment)
-	r.GET("/:sellerID", reviewHandler.GetReviewBySeller)
+	r.GET("/seller/:sellerID", reviewHandler.GetReviewBySeller)
+	r.GET("/:reviewID", reviewHandler.GetReviewByID)
+	r.DELETE("/:reviewID", reviewHandler.DeleteReview)
 }
 
 func AdminServices(r *gin.RouterGroup, h *database.Handler) {
@@ -142,7 +146,6 @@ func AdminServices(r *gin.RouterGroup, h *database.Handler) {
 	})
 
 }
-
 
 // End of Tested Services
 
@@ -217,10 +220,9 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	// })
 
 	// Admin can access
-	adminGrqoup :=	apiV1.Group("/admin")
+	adminGrqoup := apiV1.Group("/admin")
 	adminGrqoup.Use(roleMiddleware("admin"))
 	AdminServices(adminGrqoup, h)
-
 
 	// apiV1.Group("/admin").Use(roleMiddleware("admin")).GET("/", func(c *gin.Context) {
 	// 	TestAdminServices()
