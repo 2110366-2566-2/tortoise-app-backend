@@ -27,7 +27,11 @@ func UnauthorizedRoutes(r *gin.RouterGroup, h *database.Handler) {
 	user.POST("/checkvalidemail", userHandler.CheckMail)
 
 	// admin services without token
-	r.POST("/admin/login", func(c *gin.Context) {
+	admin := r.Group("/admin")
+	admin.POST("/login", func(c *gin.Context) {
 		services.LoginHandlerForAdmin(c, h)
+	})
+	admin.POST("/register", func(c *gin.Context) {
+		services.AdminRegisterHandler(c, h)
 	})
 }
