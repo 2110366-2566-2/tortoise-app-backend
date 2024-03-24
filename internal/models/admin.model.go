@@ -8,10 +8,10 @@ type Admin struct {
 	Username    string             `json:"username" binding:"required"` // unique
 	Email       string             `json:"email" binding:"required"`    // unique
 	Password    string             `json:"password" binding:"required"`
-	FirstName   string             `json:"first_name" binding:"required"`
-	LastName    string             `json:"last_name" binding:"required"`
+	FirstName   string             `json:"first_name" bson:"first_name" binding:"required"`
+	LastName    string             `json:"last_name" bson:"last_name" binding:"required"`
 	Gender      string             `json:"gender"`
-	PhoneNumber string             `json:"phoneNumber" binding:"required"`
+	PhoneNumber string             `json:"phoneNumber" bson:"phoneNumber" binding:"required"`
 	Image       string             `json:"image"`
 	Address     struct {
 		Province    string `json:"province"`
