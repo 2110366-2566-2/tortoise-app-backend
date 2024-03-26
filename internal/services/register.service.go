@@ -3,12 +3,14 @@ package services
 import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // RegisterHandler is a function to handle register request
-func RegisterHandler(c *gin.Context, h *database.Handler) {
+func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handler) {
 	var user models.User
 
 	// Bind the request body to user model
@@ -48,14 +50,26 @@ func RegisterHandler(c *gin.Context, h *database.Handler) {
 		return
 	}
 
-	res_id, err := database.CreateUser(c, h, user)
+	user.ID = primitive.NewObjectID()
+
+	// Convert image from base64 to url and add image to storage
+	if user.Image != "" {
+		imageURL, err := storage.AddImage(c, user.ID.Hex(), "users", user.Image)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error(), "success": false})
+			return
+		}
+		user.Image = imageURL
+	}
+
+	// Create the user
+	err := database.CreateUser(c, h, user)
 	// Create the user
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Internal server error", "success": false})
 		return
 	}
 
-	user.ID = *res_id
 	// Sign and get the complete encoded token as a string using the secret
 	tokenString, err := utils.CreateTokenString(user.ID, user.Username, role)
 	if err != nil {

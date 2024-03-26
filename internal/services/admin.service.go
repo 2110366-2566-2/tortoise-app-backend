@@ -5,9 +5,11 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // AdminRegisterHandler godoc
@@ -15,7 +17,7 @@ import (
 // @Summary Register admin
 // @Description Register admin
 // @Endpoint /api/v1/admin/register
-func AdminRegisterHandler(c *gin.Context, h *database.Handler) {
+func AdminRegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handler) {
 	var admin models.Admin
 
 	// Bind the request body to user model
@@ -45,14 +47,24 @@ func AdminRegisterHandler(c *gin.Context, h *database.Handler) {
 		return
 	}
 
-	res_id, err := database.CreateAdmin(c, h, admin)
+	admin.ID = primitive.NewObjectID()
+
+	// convert image from base64 to url
+	if admin.Image != "" {
+		imageURL, err := storage.AddImage(c, admin.ID.Hex(), "admins", admin.Image)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error(), "success": false})
+			return
+		}
+		admin.Image = imageURL
+	}
+
+	err := database.CreateAdmin(c, h, admin)
 	// Create the user
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error(), "success": false})
 		return
 	}
-
-	admin.ID = *res_id
 
 	c.JSON(200, gin.H{"message": "Admin created successfully", "admin": &admin})
 }

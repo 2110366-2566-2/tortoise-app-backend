@@ -21,7 +21,7 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
-	user, err := h.handler.GetUserByMail(c, data)
+	user, err := h.dbHandler.GetUserByMail(c, data)
 
 	if err != nil {
 		log.Println("Error: ", err)
@@ -63,7 +63,7 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	c.BindJSON(&data)
 
 	// Check is email exist
-	user, err := h.handler.GetUserByMail(c, data)
+	user, err := h.dbHandler.GetUserByMail(c, data)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get user by user id"
@@ -100,10 +100,10 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	log.Println("OTP: ", otp)
 
 	// Remove old OTP in database
-	// err = h.handler.DeleteOTP(c, to)
+	// err = h.dbHandler.DeleteOTP(c, to)
 
 	// Add OTP to database
-	err = h.handler.CreateOTP(c, hashOtp, to)
+	err = h.dbHandler.CreateOTP(c, hashOtp, to)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(500, gin.H{"success": false, "error": "failed to create OTP"})
@@ -127,7 +127,7 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	}
 
 	// Check is email exist
-	user, err := h.handler.GetUserByMail(c, bson.M{"email": res.Email})
+	user, err := h.dbHandler.GetUserByMail(c, bson.M{"email": res.Email})
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get user by user id"
@@ -139,7 +139,7 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	}
 
 	// Check if the OTP is valid
-	otp, err := h.handler.GetOTPbyEmail(c, res.Email)
+	otp, err := h.dbHandler.GetOTPbyEmail(c, res.Email)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "OTP not found"})
@@ -176,7 +176,7 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	}
 
 	// Remove OTP
-	if err = h.handler.DeleteOTP(c, res.Email); err != nil {
+	if err = h.dbHandler.DeleteOTP(c, res.Email); err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete OTP"})
 		return
@@ -190,7 +190,7 @@ func (h *UserHandler) CheckMail(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
-	user, err := h.handler.GetUserByMail(c, data)
+	user, err := h.dbHandler.GetUserByMail(c, data)
 
 	if err != nil {
 		log.Println("Error: ", err)

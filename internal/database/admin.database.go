@@ -6,7 +6,6 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -41,16 +40,14 @@ func CheckAdminEmailExist(ctx context.Context, h *Handler, admin models.Admin) (
 }
 
 // CreateAdmin is a function to create a new Admin
-func CreateAdmin(ctx context.Context, h *Handler, admin models.Admin) (*primitive.ObjectID, error) {
+func CreateAdmin(ctx context.Context, h *Handler, admin models.Admin) error {
 	// Insert the Admin to the database
-	result, err := h.db.Collection("admins").InsertOne(ctx, admin)
+	_, err := h.db.Collection("admins").InsertOne(ctx, admin)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	id := result.InsertedID.(primitive.ObjectID)
-
-	return &id, nil
+	return nil
 }
 
 // GetAdminByUsername is a function to get an Admin by username

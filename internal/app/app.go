@@ -12,6 +12,7 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
 	"github.com/gin-gonic/gin"
@@ -51,7 +52,7 @@ func Run(env configs.EnvVars) (func(), error) {
 
 			done := make(chan struct{})
 			go func() {
-				log.Println("timeout of 5 seconds.")
+				log.Println("Timeout of 5 seconds.")
 				<-ctx.Done()
 				done <- struct{}{}
 			}()
@@ -62,16 +63,26 @@ func Run(env configs.EnvVars) (func(), error) {
 
 		// Handle cleanup for the database
 		cleanup()
+
+		log.Println("Server closed.")
+
 	}, nil
 }
 
 func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// init the database
-	db, err := database.ConnectMongo(env.MONGODB_URI, env.MONGODB_NAME, 10*time.Second)
+	db, cancel, err := database.ConnectMongo(env.MONGODB_URI, env.MONGODB_NAME, 10*time.Second)
 	if err != nil {
 		return nil, nil, err
 	}
-	handler := database.NewHandler(db)
+	dbHandler := database.NewHandler(db)
+
+	// connect to firebase
+	stg, err := storage.ConnectFirebase(context.Background(), env.FIREBASE_CONFIG)
+	if err != nil {
+		return nil, nil, err
+	}
+	stgHandler := storage.NewHandler(stg)
 
 	// set gin mode
 	if env.GIN_MODE == "release" {
@@ -90,7 +101,7 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 
 	// setup the routes
 	rest.SetupRoutes(r)
-	apiV1.SetupRoutes(r, handler, env)
+	apiV1.SetupRoutes(r, dbHandler, stgHandler, env)
 
 	// create a new server
 	srv := &http.Server{
@@ -103,10 +114,11 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 
 	return srv, func() {
 		log.Println("Closing the database ...")
-		err := database.CloseMongo(db)
+		err := database.CloseMongo(db, cancel)
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
+		log.Println("Database closed.")
 	}, nil
 }
 
