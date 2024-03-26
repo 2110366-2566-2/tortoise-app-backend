@@ -3,12 +3,13 @@ package apiV1
 import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 
-func PetController(r *gin.RouterGroup, h *database.Handler) {
+func PetController(r *gin.RouterGroup, db *database.Handler, stg *storage.Handler) {
 	// Create a new pet handler
-	petHandler := services.NewPetHandler(h)
+	petHandler := services.NewPetHandler(db, stg)
 
 	allUser := r.Group("/")
 	allUser.Use(roleMiddleware("seller", "admin", "buyer"))

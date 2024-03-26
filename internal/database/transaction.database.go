@@ -13,11 +13,11 @@ import (
 
 func (h *Handler) CreateTransaction(ctx context.Context, transaction *models.Transaction) (*mongo.InsertOneResult, error) {
 	// Insert a new transaction
-	transaction.ID = primitive.NewObjectID()
 	res, err := h.db.Collection("transactions").InsertOne(ctx, transaction)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create transaction")
 	}
+	transaction.ID = res.InsertedID.(primitive.ObjectID)
 	return res, nil
 }
 

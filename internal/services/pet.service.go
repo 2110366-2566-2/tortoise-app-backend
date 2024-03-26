@@ -7,17 +7,22 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PetHandler struct {
-	handler *database.Handler
+	dbHandler  *database.Handler
+	stgHandler *storage.Handler
 }
 
-func NewPetHandler(handler *database.Handler) *PetHandler {
-	return &PetHandler{handler: handler}
+func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
+	return &PetHandler{
+		dbHandler:  db,
+		stgHandler: stg,
+	}
 }
 
 // GetAllPets godoc
@@ -26,7 +31,7 @@ func NewPetHandler(handler *database.Handler) *PetHandler {
 // @Description Get all pets cards
 // @Endpoint /api/v1/pets
 func (h *PetHandler) GetAllPets(c *gin.Context) {
-	pets, err := h.handler.GetAllPetCards(c)
+	pets, err := h.dbHandler.GetAllPetCards(c)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
@@ -41,7 +46,7 @@ func (h *PetHandler) GetAllPets(c *gin.Context) {
 // @Description Get pets by seller id
 // @Endpoint /api/v1/pets/seller/:userID
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
-	pets, err := h.handler.GetPetBySeller(c, c.Param("userID"))
+	pets, err := h.dbHandler.GetPetBySeller(c, c.Param("userID"))
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get pets by seller"
@@ -62,7 +67,7 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 // @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
-	pet, err := h.handler.GetPetByPetID(c, id)
+	pet, err := h.dbHandler.GetPetByPetID(c, id)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get pet by pet id"
@@ -138,7 +143,7 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 		}
 	}
 
-	pets, err := h.handler.GetFilteredPetCards(c, category, species, sex, behavior, minAge, maxAge, minWeight, maxWeight, minPrice, maxPrice)
+	pets, err := h.dbHandler.GetFilteredPetCards(c, category, species, sex, behavior, minAge, maxAge, minWeight, maxWeight, minPrice, maxPrice)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get filtered pets"})
@@ -159,17 +164,43 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind pet"})
 		return
 	}
-	// create new pet id
+
+	// check if seller exists
+	sellerID := c.Param("userID")
+	_, err := h.dbHandler.GetSellerBySellerID(c, sellerID)
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "seller not found"})
+		return
+	}
+
 	pet.ID = primitive.NewObjectID()
 
 	// convert string to objID
-	petObjID, err := primitive.ObjectIDFromHex(c.Param("userID"))
+	userObjID, err := primitive.ObjectIDFromHex(c.Param("userID"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-	pet.Seller_id = petObjID
-	err = h.handler.CreateOnePet(c, pet.Seller_id, &pet)
+	pet.Seller_id = userObjID
+
+	// convert media from base64 to url
+	if len(pet.Media) > 0 {
+		folder := "pets/" + pet.Seller_id.Hex()
+		urls, err := h.stgHandler.AddImage(c, pet.ID.Hex(), folder, pet.Media)
+		if err != nil {
+			if err.Error() == "invalid base64 image string" {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid base64 image string"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to upload media"})
+			return
+		}
+		pet.Media = urls
+	}
+
+	// create pet
+	err = h.dbHandler.CreateOnePet(c, pet.Seller_id, &pet)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
@@ -187,7 +218,22 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
-	res, err := h.handler.UpdateOnePet(c, c.Param("petID"), data)
+
+	// find if have media to upload
+	if media, ok := data["media"]; ok {
+		urls, err := h.stgHandler.AddImage(c, c.Param("petID"), "pets", media.(string))
+		if err != nil {
+			if err.Error() == "invalid base64 image string" {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid base64 image string"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to upload media"})
+			return
+		}
+		data["media"] = urls
+	}
+
+	res, err := h.dbHandler.UpdateOnePet(c, c.Param("petID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update pet"})
@@ -211,7 +257,15 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // @Description Delete pet by pet id and delete pet from user's pets
 // @Endpoint /api/v1/pets/:petID
 func (h *PetHandler) DeletePet(c *gin.Context) {
-	res, err := h.handler.DeleteOnePet(c, c.Param("petID"))
+	// get pet
+	pet, err := h.dbHandler.GetPetByPetID(c, c.Param("petID"))
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "pet not found"})
+		return
+	}
+	// delete pet
+	res, err := h.dbHandler.DeleteOnePet(c, c.Param("petID"))
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete pet"
@@ -221,6 +275,18 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
 		return
 	}
+
+	// if pet has media, delete media
+	if len(pet.Media) > 0 {
+		// delete media
+		folder := "pets/" + pet.Seller_id.Hex()
+		if err := h.stgHandler.DeleteImage(c, c.Param("petID"), folder); err != nil {
+			log.Println("Error: ", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete media"})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
@@ -230,7 +296,7 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 // @Description Get master data for pet
 // @Endpoint /api/v1/pets/master
 func (h *PetHandler) GetMasterData(c *gin.Context) {
-	masterData, err := h.handler.GetAllMasterData(c)
+	masterData, err := h.dbHandler.GetAllMasterData(c)
 	if err != nil {
 		c.JSON(500, gin.H{"success": false, "error": "failed to get master data"})
 		return
@@ -244,7 +310,7 @@ func (h *PetHandler) GetMasterData(c *gin.Context) {
 // @Description Get master data by category
 // @Endpoint /api/v1/pets/master/:category
 func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
-	masterData, err := h.handler.GetMasterDataByCategory(c, c.Param("category"))
+	masterData, err := h.dbHandler.GetMasterDataByCategory(c, c.Param("category"))
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(500, gin.H{"success": false, "error": "failed to get master data by category"})
@@ -259,7 +325,7 @@ func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 // @Description Get list of categories
 // @Endpoint /api/v1/pets/master/categories
 func (h *PetHandler) GetCategories(c *gin.Context) {
-	categories, err := h.handler.GetCategories(c)
+	categories, err := h.dbHandler.GetCategories(c)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(500, gin.H{"success": false, "error": "failed to get categories"})

@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func (h *Handler) AddBankAccount(ctx context.Context, sellerID string, bankAccount models.BankAccount) (*mongo.UpdateResult, error) {
@@ -82,4 +83,20 @@ func (h *Handler) ChangeStatus(ctx context.Context, sellerID string, status stri
 	}
 
 	return res, nil
+}
+
+func (h *Handler) GetSellerBySellerID(ctx context.Context, sellerID string) (*models.Seller, error) {
+	var seller models.Seller
+	// Convert sellerID to ObjectID
+	sellerObjID, err := primitive.ObjectIDFromHex(sellerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert sellerID to ObjectID: %v", err)
+	}
+	opts := options.FindOne().SetProjection(bson.M{"pets": 0})
+	filter := bson.M{"_id": sellerObjID}
+	err = h.db.Collection("sellers").FindOne(ctx, filter, opts).Decode(&seller)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find seller: %v", err)
+	}
+	return &seller, nil
 }

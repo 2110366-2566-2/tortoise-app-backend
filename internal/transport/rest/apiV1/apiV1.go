@@ -6,7 +6,6 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
-	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -36,11 +35,7 @@ func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, en
 
 	// ================ Unauthorized routes ================
 
-	UnauthorizedRoutes(apiV1, dbH)
-
-	// Upload file to storage
-	storageHandler := services.NewStorageHandler(stgH)
-	apiV1.POST("/upload", storageHandler.UploadFile)
+	UnauthorizedRoutes(apiV1, dbH, stgH)
 
 	// ============ End of Unauthorized routes ============
 
@@ -50,7 +45,7 @@ func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, en
 	// All user can access
 	userGroup := apiV1.Group("/user")
 	userGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	UserServices(userGroup, dbH)
+	UserServices(userGroup, dbH, stgH)
 
 	reviewGroup := apiV1.Group("/review")
 	reviewGroup.Use(roleMiddleware("seller", "admin", "buyer"))
@@ -72,7 +67,7 @@ func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, en
 
 	petsGroup := apiV1.Group("/pets")
 	// petsGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	PetController(petsGroup, dbH)
+	PetController(petsGroup, dbH, stgH)
 
 	transactionGroup := apiV1.Group("/transactions")
 	transactionGroup.Use(roleMiddleware("seller", "admin", "buyer"))

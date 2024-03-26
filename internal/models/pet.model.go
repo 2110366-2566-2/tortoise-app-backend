@@ -4,7 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // pet model from pet collection
 type Pet struct {
-	ID              primitive.ObjectID `json:"id" bson:"_id"`
+	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Name            string             `json:"name"`
 	Age             int32              `json:"age"`
 	Price           int32              `json:"price"`
@@ -16,7 +16,7 @@ type Pet struct {
 	Species         string             `json:"species"`
 	Behavior        string             `json:"behavior"`
 	Media           string             `json:"media"`
-	Medical_records []Medical_record   `json:"medical_records"`
+	Medical_records []Medical_record   `json:"medical_records" bson:"medical_records"`
 	Seller_id       primitive.ObjectID `json:"seller_id,omitempty"`
 }
 
@@ -45,9 +45,4 @@ type PetDetail struct {
 	Sex     string `json:"sex"`
 	Species string `json:"species"`
 	Media   string `json:"media"`
-}
-
-type PetMedia struct {
-	ID    string `json:"id"`
-	Media string `json:"media"`
 }
