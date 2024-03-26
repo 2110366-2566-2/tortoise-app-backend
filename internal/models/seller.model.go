@@ -14,7 +14,7 @@ type Seller struct {
 
 // BankAccount model
 type BankAccount struct {
-	BankName          string `json:"bank_name"`
-	BankAccountName   string `json:"bank_account_name"`
-	BankAccountNumber string `json:"bank_account_number"`
+	BankName          string `json:"bank_name" bson:"bank_name"`
+	BankAccountName   string `json:"bank_account_name" bson:"bank_account_name"`
+	BankAccountNumber string `json:"bank_account_number" bson:"bank_account_number"`
 }
