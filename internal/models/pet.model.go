@@ -21,8 +21,8 @@ type Pet struct {
 }
 
 type Medical_record struct {
-	Medical_id   string `json:"medical_id"`
-	Medical_date string `json:"medical_date"`
+	Medical_id   string `json:"medical_id" bson:"medical_id"`
+	Medical_date string `json:"medical_date" bson:"medical_date"`
 	Description  string `json:"description"`
 }
 
@@ -45,4 +45,9 @@ type PetDetail struct {
 	Sex     string `json:"sex"`
 	Species string `json:"species"`
 	Media   string `json:"media"`
+}
+
+type PetMedia struct {
+	ID    string `json:"id"`
+	Media string `json:"media"`
 }

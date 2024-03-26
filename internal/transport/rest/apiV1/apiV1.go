@@ -6,6 +6,8 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,7 +22,7 @@ func TestAdminServices() {
 
 // End of Tested Services
 
-func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
+func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, env configs.EnvVars) {
 	// env, err := configs.LoadConfig()
 	// if err != nil {
 	// 	panic(err)
@@ -34,7 +36,11 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 
 	// ================ Unauthorized routes ================
 
-	UnauthorizedRoutes(apiV1, h)
+	UnauthorizedRoutes(apiV1, dbH)
+
+	// Upload file to storage
+	storageHandler := services.NewStorageHandler(stgH)
+	apiV1.POST("/upload", storageHandler.UploadFile)
 
 	// ============ End of Unauthorized routes ============
 
@@ -44,15 +50,15 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	// All user can access
 	userGroup := apiV1.Group("/user")
 	userGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	UserServices(userGroup, h)
+	UserServices(userGroup, dbH)
 
 	reviewGroup := apiV1.Group("/review")
 	reviewGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	ReviewServices(reviewGroup, h)
+	ReviewServices(reviewGroup, dbH)
 
 	reportGroup := apiV1.Group("/report")
 	reportGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	ReportServices(reportGroup, h)
+	ReportServices(reportGroup, dbH)
 
 	// Seller and Admin and Buyer can access
 
@@ -66,25 +72,25 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 
 	petsGroup := apiV1.Group("/pets")
 	// petsGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	PetController(petsGroup, h)
+	PetController(petsGroup, dbH)
 
 	transactionGroup := apiV1.Group("/transactions")
 	transactionGroup.Use(roleMiddleware("seller", "admin", "buyer"))
-	TransactionServices(transactionGroup, h)
+	TransactionServices(transactionGroup, dbH)
 
 	// reveiwGrop := apiV1.Group("/review")
 	// reveiwGrop.Use(roleMiddleware("seller", "admin", "buyer"))
-	// ReviewServices(reveiwGrop, h)
+	// ReviewServices(reveiwGrop,dbH)
 
 	// Seller and Admin can access
 	bankGroup := apiV1.Group("/bank")
 	bankGroup.Use(roleMiddleware("seller", "admin"))
-	BankServices(bankGroup, h)
+	BankServices(bankGroup, dbH)
 
 	// Buyer and Admin can access
 	paymentGroup := apiV1.Group("/payment")
 	paymentGroup.Use(roleMiddleware("buyer", "admin"))
-	PaymentServices(paymentGroup, h, env)
+	PaymentServices(paymentGroup, dbH, env)
 
 	// apiV1.Group("/seller").Use(roleMiddleware("seller", "admin")).GET("/", func(c *gin.Context) {
 	// 	TestSellerServices()
@@ -93,7 +99,7 @@ func SetupRoutes(r *gin.Engine, h *database.Handler, env configs.EnvVars) {
 	// Admin can access
 	adminGrqoup := apiV1.Group("/admin")
 	adminGrqoup.Use(roleMiddleware("admin"))
-	AdminServices(adminGrqoup, h)
+	AdminServices(adminGrqoup, dbH)
 
 	// apiV1.Group("/admin").Use(roleMiddleware("admin")).GET("/", func(c *gin.Context) {
 	// 	TestAdminServices()
