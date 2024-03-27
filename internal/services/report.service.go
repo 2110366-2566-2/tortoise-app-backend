@@ -82,6 +82,7 @@ func (h *ReportHandler) GetReport(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": true, "data": bson.M{"system_reports_count": len(*systemReports), "reports_category_system": &systemReports}})
 	}
 	if category == "all" || category == "" {
-		c.JSON(http.StatusOK, gin.H{"success": true, "data": bson.M{"party_reports_count": len(*partyReports), "reports_category_party": &partyReports, "system_reports_count": len(*systemReports), "reports_category_system": &systemReports}})
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": bson.M{"party_reports_count": len(*partyReports), "reports_category_party": &partyReports,
+			"system_reports_count": len(*systemReports), "reports_category_system": &systemReports}})
 	}
 }
