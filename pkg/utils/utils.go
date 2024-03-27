@@ -2,8 +2,12 @@ package utils
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"net/mail"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -58,4 +62,31 @@ func CreateTokenString(userID primitive.ObjectID, username string, role string) 
 	}
 
 	return tokenString, nil
+}
+
+func ValidateBase64Image(base64Image string) (*[]string, error) {
+	// Check if the string is empty
+	if base64Image == "" {
+		return nil, errors.New("empty image data")
+	}
+
+	// Check if the string starts with the correct prefix
+	if !strings.HasPrefix(base64Image, "data:image/") {
+		return nil, errors.New("invalid image format")
+	}
+
+	// Split the base64 image string
+	splitString := strings.Split(base64Image, ";base64,")
+	if len(splitString) != 2 {
+		return nil, errors.New("invalid base64 image string")
+	}
+
+	// Decode the Base64-encoded image data
+	_, err := base64.StdEncoding.DecodeString(splitString[1])
+	if err != nil {
+		return nil, fmt.Errorf("error decoding image data: %v", err)
+	}
+
+	return &splitString, nil
+
 }

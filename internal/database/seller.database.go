@@ -100,3 +100,31 @@ func (h *Handler) GetSellerBySellerID(ctx context.Context, sellerID string) (*mo
 	}
 	return &seller, nil
 }
+
+func (h *Handler) GetAllSellers(ctx context.Context, status string) (*[]models.Seller, error) {
+	var sellers []models.Seller
+	// Check if the status is valid
+	if status != "verified" && status != "unverified" && status != "" {
+		return nil, fmt.Errorf("invalid status")
+	}
+	var filter bson.M
+	if status == "" {
+		filter = bson.M{}
+	} else {
+		filter = bson.M{"status": status}
+	}
+	cursor, err := h.db.Collection("sellers").Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find sellers: %v", err)
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var seller models.Seller
+		if err := cursor.Decode(&seller); err != nil {
+			return nil, fmt.Errorf("failed to decode document: %v", err)
+		}
+		sellers = append(sellers, seller)
+	}
+
+	return &sellers, nil
+}

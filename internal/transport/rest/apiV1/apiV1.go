@@ -82,6 +82,11 @@ func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, en
 	bankGroup.Use(roleMiddleware("seller", "admin"))
 	BankServices(bankGroup, dbH)
 
+	// Seller and Admin can access
+	sellerGroup := apiV1.Group("/seller")
+	sellerGroup.Use(roleMiddleware("seller", "admin"))
+	SellerServices(sellerGroup, dbH)
+
 	// Buyer and Admin can access
 	paymentGroup := apiV1.Group("/payment")
 	paymentGroup.Use(roleMiddleware("buyer", "admin"))
