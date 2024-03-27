@@ -5,23 +5,23 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/url"
-	"strings"
 
 	"cloud.google.com/go/storage"
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"google.golang.org/api/iterator"
 )
 
 func (h *Handler) AddImage(ctx context.Context, name, folder, base64Image string) (string, error) {
 
 	// split the base64 image string
-	split_string := strings.Split(base64Image, ";base64,")
-	if len(split_string) != 2 {
-		fmt.Println("Invalid base64 image string")
-		return "", fmt.Errorf("invalid base64 image string")
+	split_string, err := utils.ValidateBase64Image(base64Image)
+	if err != nil {
+		fmt.Println("Error validating image data:", err)
+		return "", fmt.Errorf("invalid image data")
 	}
 
 	// Decode the Base64-encoded image
-	imageData, err := base64.StdEncoding.DecodeString(split_string[1])
+	imageData, err := base64.StdEncoding.DecodeString((*split_string)[1])
 	if err != nil {
 		fmt.Println("Error decoding image data:", err)
 		return "", fmt.Errorf("error decoding image data")
