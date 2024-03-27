@@ -8,7 +8,6 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
-	// "go.mongodb.org/mongo-driver/bson"
 )
 
 type ReportHandler struct {
@@ -76,13 +75,13 @@ func (h *ReportHandler) GetReport(c *gin.Context) {
 	}
 
 	if category == "party" {
-		c.JSON(http.StatusOK, gin.H{"success": true, "partyReports_count": len(*partyReports), "reports (category: party)": &partyReports})
+		c.JSON(http.StatusOK, gin.H{"success": true, "party_reports_count": len(*partyReports), "reports_category_party": &partyReports})
 	}
 	if category == "system" {
-		c.JSON(http.StatusOK, gin.H{"success": true, "systemReports_count": len(*systemReports), "reports (category: system)": &systemReports})
+		c.JSON(http.StatusOK, gin.H{"success": true, "system_reports_count": len(*systemReports), "reports_category_system": &systemReports})
 	}
 	if category == "all" || category == "" {
-		c.JSON(http.StatusOK, gin.H{"success": true, "partyReports_count": len(*partyReports), "systemReports_count": len(*systemReports), "reports (category: party)": &partyReports,
-			"reports (category: system)": &systemReports})
+		c.JSON(http.StatusOK, gin.H{"success": true, "party_reports_count": len(*partyReports), "system_reports_count": len(*systemReports), "reports_category_party": &partyReports,
+			"reports_category_system": &systemReports})
 	}
 }
