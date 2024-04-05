@@ -6,17 +6,23 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserHandler struct {
-	handler *database.Handler
+	dbHandler  *database.Handler
+	stgHandler *storage.Handler
 }
 
-func NewUserHandler(handler *database.Handler) *UserHandler {
-	return &UserHandler{handler: handler}
+func NewUserHandler(db *database.Handler, stg *storage.Handler) *UserHandler {
+	return &UserHandler{
+		dbHandler:  db,
+		stgHandler: stg,
+	}
 }
 
 // GetUserByUserID godoc
@@ -26,7 +32,7 @@ func NewUserHandler(handler *database.Handler) *UserHandler {
 // @Endpoint /api/v1/user/:userID
 func (h *UserHandler) GetUserByUserID(c *gin.Context) {
 	id := c.Param("userID")
-	user, err := h.handler.GetUserByUserID(c, id)
+	user, err := h.dbHandler.GetUserByUserID(c, id)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get user by user id"
@@ -62,7 +68,7 @@ func (h *UserHandler) UpdateUserPasswd(c *gin.Context) {
 
 		if k == "old_password" {
 			id := c.Param("userID")
-			user, err := h.handler.GetUserByUserID(c, id)
+			user, err := h.dbHandler.GetUserByUserID(c, id)
 
 			if err != nil {
 				log.Println("Error: ", err)
@@ -82,7 +88,7 @@ func (h *UserHandler) UpdateUserPasswd(c *gin.Context) {
 	}
 
 	//call funtion
-	res, err := h.handler.UpdateOneUser(c, c.Param("userID"), data)
+	res, err := h.dbHandler.UpdateOneUser(c, c.Param("userID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update user's password"})
@@ -110,13 +116,26 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.BindJSON(&data)
 
 	//Check if body have "password field"
-	for k, _ := range data {
-		if k == "password" {
-			c.JSON(400, gin.H{"success": false, "error": "found password field in body"})
+	if _, ok := data["password"]; ok {
+		c.JSON(400, gin.H{"success": false, "error": "found password field in body"})
+		return
+	}
+
+	// check if have media to upload
+	if image, ok := data["image"]; ok {
+		url, err := h.stgHandler.AddImage(c, c.Param("userID"), "users", image.(string))
+		if err != nil {
+			if err.Error() == "invalid base64 image string" {
+				c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid base64 image string"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to upload media"})
 			return
 		}
+		data["image"] = url
 	}
-	res, err := h.handler.UpdateOneUser(c, c.Param("userID"), data)
+
+	res, err := h.dbHandler.UpdateOneUser(c, c.Param("userID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update user's profiles"})
@@ -140,7 +159,15 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Description Delete user that appears in all schema and delete pet if user is a seller
 // @Endpoint /api/v1/user/:userID
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	res, err := h.handler.DeleteOneUser(c, c.Param("userID"))
+	user, err := h.dbHandler.GetUserByUserID(c, c.Param("userID"))
+	if err != nil {
+		log.Println("Error: ", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "user not found"})
+		return
+	}
+
+	// delete user
+	res, err := h.dbHandler.DeleteOneUser(c, c.Param("userID"), h.stgHandler)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete user"
@@ -150,6 +177,17 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
 		return
 	}
+
+	// if user have image, delete it
+	if len(user.Image) > 0 {
+		// delete media
+		if err := h.stgHandler.DeleteImage(c, c.Param("userID"), "users"); err != nil {
+			log.Println("Error: ", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete media"})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
@@ -165,16 +203,8 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 		return
 	}
 
-	// Delete OTP
-	err := h.handler.DeleteOTP(c, reset.Email)
-	if err != nil {
-		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete OTP"})
-		return
-	}
-
 	var user *models.User
-	user, err = h.handler.GetUserByMail(c, bson.M{"email": reset.Email})
+	user, err := h.dbHandler.GetUserByMail(c, bson.M{"email": reset.Email})
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get user by email"
@@ -185,11 +215,22 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 		return
 	}
 
+	// validate user_id with token
+	IDFromToken, exist := c.Get("userID")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+	if IDFromToken.(primitive.ObjectID) != user.ID {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+
 	// Update user's password
 	update := bson.M{
 		"password": reset.Password,
 	}
-	_, err = h.handler.UpdateOneUser(c, user.ID.Hex(), update)
+	_, err = h.dbHandler.UpdateOneUser(c, user.ID.Hex(), update)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update user's password"})
@@ -198,4 +239,33 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": "password updated"})
 
+}
+
+// WhoAmI godoc
+// @Method GET
+// @Summary Get my profile
+// @Description Get my profile
+// @Endpoint /api/v1/user/me
+func (h *UserHandler) WhoAmI(c *gin.Context) {
+	userID, exist := c.Get("userID")
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+	// convert primitive.ObjectID to string
+	userIDStr := userID.(primitive.ObjectID).Hex()
+
+	// fmt.Println("userID: ", userIDStr)
+	user, err := h.dbHandler.GetUserByUserID(c, userIDStr)
+	if err != nil {
+		log.Println("Error: ", err)
+		errorMsg := "failed to get user by user id"
+		if err.Error() == "failed to find user" {
+			errorMsg = "user not found"
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": user})
 }

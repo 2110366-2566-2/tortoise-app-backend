@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -51,6 +52,29 @@ func CreateUser(ctx context.Context, h *Handler, user models.User) error {
 		return err
 	}
 
+	id := user.ID
+
+	if user.Role == 1 {
+		// Insert the seller to the database
+		var seller models.Seller
+		seller.ID = id
+		seller.FirstName = user.FirstName
+		seller.LastName = user.LastName
+		seller.Pets = []primitive.ObjectID{}
+		seller.Status = "unverified"
+		_, err = h.db.Collection("sellers").InsertOne(ctx, seller)
+		if err != nil {
+			return err
+		}
+	} else if user.Role == 2 {
+		// Insert the buyer to the database
+		user.ID = id
+		_, err = h.db.Collection("buyers").InsertOne(ctx, user)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -64,7 +88,7 @@ func (h *Handler) GetUserByUserID(ctx context.Context, userID string) (*models.U
 	filter := bson.M{"_id": userObjID}
 	err = h.db.Collection("users").FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		return nil, fmt.Errorf("failed to find user: %v", err)
+		return nil, fmt.Errorf("failed to find user")
 	}
 	return &user, nil
 }
@@ -98,7 +122,7 @@ func (h *Handler) UpdateOneUser(ctx context.Context, userID string, data bson.M)
 }
 
 // DeleteOneUser deletes a user
-func (h *Handler) DeleteOneUser(ctx context.Context, userID string) (*mongo.DeleteResult, error) {
+func (h *Handler) DeleteOneUser(ctx context.Context, userID string, storage *storage.Handler) (*mongo.DeleteResult, error) {
 
 	// get UserId
 	user, err := h.GetUserByUserID(ctx, userID)
@@ -118,7 +142,14 @@ func (h *Handler) DeleteOneUser(ctx context.Context, userID string) (*mongo.Dele
 		// delete user from seller collection
 		h.db.Collection("sellers").DeleteOne(ctx, bson.M{"_id": user.ID})
 		// delete user's pet from pet collection
-		h.db.Collection("pets").DeleteMany(ctx, bson.M{"seller_id": user.ID})
+		res, _ := h.db.Collection("pets").DeleteMany(ctx, bson.M{"seller_id": user.ID})
+		if res.DeletedCount > 0 {
+			// delete pet's images from storage
+			if err := storage.DeleteFolder(ctx, "pets/"+user.ID.Hex()); err != nil {
+				return nil, fmt.Errorf("failed to delete pet's images: %v", err)
+			}
+		}
+
 	} else {
 		//delete user from buyers
 		h.db.Collection("buyers").DeleteOne(ctx, bson.M{"_id": user.ID})

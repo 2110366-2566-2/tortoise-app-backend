@@ -17,22 +17,24 @@ func NewHandler(db *mongo.Database) *Handler {
 	return &Handler{db: db}
 }
 
-func ConnectMongo(uri, dbName string, timeout time.Duration) (*mongo.Database, error) {
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
+func ConnectMongo(uri, dbName string, timeout time.Duration) (*mongo.Database, context.CancelFunc, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	// defer cancel()
 
 	clientOpts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
-		return nil, err
+		return nil, cancel, err
 	}
 
 	log.Println("Connected to MongoDB")
 
-	return client.Database(dbName), nil
+	return client.Database(dbName), cancel, nil
 }
 
-func CloseMongo(db *mongo.Database) error {
+func CloseMongo(db *mongo.Database, cancel context.CancelFunc) error {
+	// cancel the context
+	cancel()
 	// if err return err
 	return db.Client().Disconnect(context.Background())
 }

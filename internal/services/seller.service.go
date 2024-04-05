@@ -1,6 +1,9 @@
 package services
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/gin-gonic/gin"
@@ -63,4 +66,46 @@ func (h *SellerHandler) DeleteBankAccount(c *gin.Context) {
 	}
 
 	c.JSON(200, gin.H{"success": true, "data": res})
+}
+
+// GetSeller godoc
+// @Method GET
+// @Summary Get seller by ID
+// @Description Get seller by ID
+// @Endpoint /api/v1/seller/:sellerID
+func (h *SellerHandler) GetSeller(c *gin.Context) {
+	seller, err := h.handler.GetSellerBySellerID(c, c.Param("sellerID"))
+	if err != nil {
+		fmt.Println("Error: ", err)
+		if strings.Contains(err.Error(), "failed to find seller") {
+			c.JSON(500, gin.H{"success": false, "error": "seller not found"})
+			return
+		}
+		c.JSON(500, gin.H{"error": "failed to get seller", "success": false})
+		return
+	}
+
+	c.JSON(200, gin.H{"success": true, "data": seller})
+}
+
+// GetAllSellers godoc
+// @Method GET
+// @Summary Get all sellers with query params
+// @Description Get all sellers
+// @Endpoint /api/v1/sellers
+func (h *SellerHandler) GetAllSellers(c *gin.Context) {
+	// query
+	status := c.Query("status")
+	sellers, err := h.handler.GetAllSellers(c, status)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		if strings.Contains(err.Error(), "invalid status") {
+			c.JSON(400, gin.H{"success": false, "error": "invalid status"})
+			return
+		}
+		c.JSON(500, gin.H{"error": "failed to get sellers", "success": false})
+		return
+	}
+
+	c.JSON(200, gin.H{"success": true, "data": sellers, "count": len(*sellers)})
 }

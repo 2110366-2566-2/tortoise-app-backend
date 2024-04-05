@@ -1,9 +1,7 @@
 package services
 
 import (
-	"fmt"
 	"net/http"
-	"reflect"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
@@ -26,16 +24,16 @@ func NewTransactionHandler(handler *database.Handler) *TransactionHandler {
 // @Endpoint /api/v1/transactions/:userID
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
-	fmt.Println(c)
+	// fmt.Println(c)
 	uid, exits1 := c.Get("userID")
 	role, exits2 := c.Get("role")
 
 	// type of uid is primitive.ObjectID
-	fmt.Println(uid)
-	fmt.Println("Type of uid: ", reflect.TypeOf(uid))
-	fmt.Println("Type of role: ", reflect.TypeOf(role))
-	fmt.Println("Role: ", role)
-	fmt.Println("Context: ", c)
+	// fmt.Println(uid)
+	// fmt.Println("Type of uid: ", reflect.TypeOf(uid))
+	// fmt.Println("Type of role: ", reflect.TypeOf(role))
+	// fmt.Println("Role: ", role)
+	// fmt.Println("Context: ", c)
 
 	if !exits1 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "failed to get userID"})

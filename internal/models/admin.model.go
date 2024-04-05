@@ -2,19 +2,17 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-// user model from user collection
-type User struct {
-	// ID represents the unique identifier of a user.
+// admin model from user collection
+type Admin struct {
 	ID          primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Username    string             `json:"username" binding:"required"` // unique
 	Email       string             `json:"email" binding:"required"`    // unique
 	Password    string             `json:"password" binding:"required"`
-	FirstName   string             `json:"first_name" bson:"first_name"`
-	LastName    string             `json:"last_name" bson:"last_name"`
+	FirstName   string             `json:"first_name" bson:"first_name" binding:"required"`
+	LastName    string             `json:"last_name" bson:"last_name" binding:"required"`
 	Gender      string             `json:"gender"`
-	PhoneNumber string             `json:"phoneNumber"`
+	PhoneNumber string             `json:"phoneNumber" bson:"phoneNumber" binding:"required"`
 	Image       string             `json:"image"`
-	Role        int32              `json:"role" binding:"required"`
 	Address     struct {
 		Province    string `json:"province"`
 		District    string `json:"district"`

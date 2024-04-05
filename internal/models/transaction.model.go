@@ -20,14 +20,14 @@ type Transaction struct {
 }
 
 type PaymentIntent struct {
-	ID            string             `json:"payment_id"`
-	TransactionID primitive.ObjectID `json:"transaction_id"`
-	PaymentMethod string             `json:"payment_method"`
+	ID            string             `json:"payment_id" bson:"payment_id"`
+	TransactionID primitive.ObjectID `json:"transaction_id" bson:"transaction_id"`
+	PaymentMethod string             `json:"payment_method" bson:"payment_method"`
 }
 
 type TransactionWithDetails struct {
 	Transaction
-	SellerName string    `json:"seller_name"`
-	BuyerName  string    `json:"buyer_name"`
-	PetDetail  PetDetail `json:"pet_detail"`
+	SellerName string    `json:"seller_name" bson:"seller_name"`
+	BuyerName  string    `json:"buyer_name" bson:"buyer_name"`
+	PetDetail  PetDetail `json:"pet_detail" bson:"pet_detail"`
 }
