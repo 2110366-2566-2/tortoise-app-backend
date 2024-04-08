@@ -168,6 +168,9 @@ definitions:
     type: object
 info:
   contact: {}
+  description: PetPal API is a simple API for pet marketplaces.
+  title: PetPal API
+  version: "1.0"
 paths:
   /api/v1/pets/:
     get:
@@ -370,4 +373,7 @@ paths:
       summary: Create a new pet
       tags:
       - Pets
+schemes:
+- https
+- http
 swagger: "2.0"
