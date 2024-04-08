@@ -25,16 +25,26 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 	}
 }
 
-// func (h *PetHandler) GetAllPets(c *gin.Context) {
-// 	pets, err := h.dbHandler.GetAllPetCards(c)
-// 	if err != nil {
-// 		log.Println("Error: ", err)
-// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
-// 		return
-// 	}
-// 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
-// }
-
+//	func (h *PetHandler) GetAllPets(c *gin.Context) {
+//		pets, err := h.dbHandler.GetAllPetCards(c)
+//		if err != nil {
+//			log.Println("Error: ", err)
+//			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
+//			return
+//		}
+//		c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
+//	}
+//
+// GetPetBySellerID godoc
+// @Summary Get pets by sellerID
+// @tags Pets
+// @Description Get pets by sellerID
+// @id GetPetBySeller
+// @produce json
+// @Param sellerID path string true "ID of the seller to perform the operation on"
+// @Router /api/v1/pets/seller/{sellerID} [get]
+// @Success 200 {object} models.PetCardResponse
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	// prevent xss attack
 	sanitizedInput := utils.SanitizeString(c.Param("userID"))
@@ -54,7 +64,7 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 
 // GetPetByPetID godoc
 // @Summary Get single pet by petID
-// @tags pets
+// @tags Pets
 // @Description Get single pet by petID
 // @id GetPetByPetID
 // @produce json
@@ -80,7 +90,7 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 
 // GetPetFilteredPets godoc
 // @Summary Get filtered pets
-// @tags pets
+// @tags Pets
 // @Description Get filtered pets by filter params
 // @id GetFilteredPets
 // @produce json
@@ -179,6 +189,17 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
 }
 
+// CreatePet godoc
+// @Summary Create a new pet
+// @Description Creat a new pet
+// @Tags Pets
+// @Accept json
+// @Param sellerID path string true "ID of the seller to perform the operation on"
+// @Param Pet body models.PetRequest true "Pet object that needs to be created"
+// @Router /api/v1/pets/seller/{sellerID} [post]
+// @Success 200 {object} models.PetResponse "return created pet"
+// @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) CreatePet(c *gin.Context) {
 	var pet models.Pet
 	if err := c.BindJSON(&pet); err != nil {
@@ -239,7 +260,7 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 // UpdatePet godoc
 // @Summary Update pet
 // @Description Update pet by pet ID
-// @Tags pets
+// @Tags Pets
 // @Accept json
 // @Produce json
 // @Param petID path string true "ID of the pet to perform the operation on"
@@ -292,7 +313,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // DeletePet godoc
 // @Summary Delete pet
 // @Description Delete pet by pet ID and delete pet from user's pets
-// @Tags pets
+// @Tags Pets
 // @Accept json
 // @Produce json
 // @Param petID path string true "ID of the pet to delete"

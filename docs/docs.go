@@ -22,7 +22,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "pets"
+                    "Pets"
                 ],
                 "summary": "Get filtered pets",
                 "operationId": "GetFilteredPets",
@@ -117,7 +117,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "pets"
+                    "Pets"
                 ],
                 "summary": "Get single pet by petID",
                 "operationId": "GetPetByPetID",
@@ -154,7 +154,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "pets"
+                    "Pets"
                 ],
                 "summary": "Update pet",
                 "parameters": [
@@ -205,7 +205,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "pets"
+                    "Pets"
                 ],
                 "summary": "Delete pet",
                 "parameters": [
@@ -222,6 +222,90 @@ const docTemplate = `{
                         "description": "return deleted count",
                         "schema": {
                             "$ref": "#/definitions/models.DeletePetResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pets/seller/{sellerID}": {
+            "get": {
+                "description": "Get pets by sellerID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pets"
+                ],
+                "summary": "Get pets by sellerID",
+                "operationId": "GetPetBySeller",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the seller to perform the operation on",
+                        "name": "sellerID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PetCardResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creat a new pet",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Pets"
+                ],
+                "summary": "Create a new pet",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the seller to perform the operation on",
+                        "name": "sellerID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Pet object that needs to be created",
+                        "name": "Pet",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PetRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "return created pet",
+                        "schema": {
+                            "$ref": "#/definitions/models.PetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
@@ -473,12 +557,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
+	Version:          "",
 	Host:             "",
 	BasePath:         "",
-	Schemes:          []string{"https", "http"},
-	Title:            "PetPal API",
-	Description:      "PetPal API is a simple API for pet marketplaces.",
+	Schemes:          []string{},
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

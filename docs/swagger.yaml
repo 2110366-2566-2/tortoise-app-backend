@@ -168,9 +168,6 @@ definitions:
     type: object
 info:
   contact: {}
-  description: PetPal API is a simple API for pet marketplaces.
-  title: PetPal API
-  version: "1.0"
 paths:
   /api/v1/pets/:
     get:
@@ -234,7 +231,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get filtered pets
       tags:
-      - pets
+      - Pets
   /api/v1/pets/pet/{petID}:
     delete:
       consumes:
@@ -259,7 +256,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Delete pet
       tags:
-      - pets
+      - Pets
     get:
       description: Get single pet by petID
       operationId: GetPetByPetID
@@ -282,7 +279,7 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Get single pet by petID
       tags:
-      - pets
+      - Pets
     put:
       consumes:
       - application/json
@@ -316,8 +313,61 @@ paths:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Update pet
       tags:
-      - pets
-schemes:
-- https
-- http
+      - Pets
+  /api/v1/pets/seller/{sellerID}:
+    get:
+      description: Get pets by sellerID
+      operationId: GetPetBySeller
+      parameters:
+      - description: ID of the seller to perform the operation on
+        in: path
+        name: sellerID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PetCardResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get pets by sellerID
+      tags:
+      - Pets
+    post:
+      consumes:
+      - application/json
+      description: Creat a new pet
+      parameters:
+      - description: ID of the seller to perform the operation on
+        in: path
+        name: sellerID
+        required: true
+        type: string
+      - description: Pet object that needs to be created
+        in: body
+        name: Pet
+        required: true
+        schema:
+          $ref: '#/definitions/models.PetRequest'
+      responses:
+        "200":
+          description: return created pet
+          schema:
+            $ref: '#/definitions/models.PetResponse'
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new pet
+      tags:
+      - Pets
 swagger: "2.0"
