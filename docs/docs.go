@@ -110,7 +110,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/pets/{petID}": {
+        "/api/v1/pets/pet/{petID}": {
             "get": {
                 "description": "Get single pet by petID",
                 "produces": [
@@ -144,9 +144,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/pets/pet/{petID}": {
+            },
             "put": {
                 "description": "Update pet by pet ID",
                 "consumes": [

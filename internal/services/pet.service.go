@@ -59,7 +59,7 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 // @id GetPetByPetID
 // @produce json
 // @Param petID path string true "ID of the pet to perform the operation on"
-// @Router /api/v1/pets/{petID} [get]
+// @Router /api/v1/pets/pet/{petID} [get]
 // @Success 200 {object} models.PetResponse
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
@@ -244,7 +244,7 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 // @Produce json
 // @Param petID path string true "ID of the pet to perform the operation on"
 // @Param Pet body models.PetRequest true "Pet object that needs to be updated"
-// @Router /pets/pet/{petID} [put]
+// @Router /api/v1/pets/pet/{petID} [put]
 // @Success 200 {object} models.PetResponse "return updated pet"
 // @Failure 400 {object} models.ErrorResponse "bad request"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
@@ -296,7 +296,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param petID path string true "ID of the pet to delete"
-// @Router /pets/pet/{petID} [delete]
+// @Router /api/v1/pets/pet/{petID} [delete]
 // @Success 200 {object} models.DeletePetResponse "return deleted count"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) DeletePet(c *gin.Context) {

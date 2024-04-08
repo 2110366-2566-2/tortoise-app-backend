@@ -235,31 +235,7 @@ paths:
       summary: Get filtered pets
       tags:
       - pets
-  /api/v1/pets/{petID}:
-    get:
-      description: Get single pet by petID
-      operationId: GetPetByPetID
-      parameters:
-      - description: ID of the pet to perform the operation on
-        in: path
-        name: petID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.PetResponse'
-        "500":
-          description: internal server error
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      summary: Get single pet by petID
-      tags:
-      - pets
-  /pets/pet/{petID}:
+  /api/v1/pets/pet/{petID}:
     delete:
       consumes:
       - application/json
@@ -282,6 +258,29 @@ paths:
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       summary: Delete pet
+      tags:
+      - pets
+    get:
+      description: Get single pet by petID
+      operationId: GetPetByPetID
+      parameters:
+      - description: ID of the pet to perform the operation on
+        in: path
+        name: petID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PetResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get single pet by petID
       tags:
       - pets
     put:
