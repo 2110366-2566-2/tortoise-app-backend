@@ -16,6 +16,10 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
 	"github.com/gin-gonic/gin"
+
+	docs "github.com/2110366-2566-2/tortoise-app-backend/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Run(env configs.EnvVars) (func(), error) {
@@ -95,6 +99,11 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 
 	// init the server
 	r := gin.Default()
+
+	docs.SwaggerInfo.BasePath = "/"
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// set up CORS
 	r.Use(CORSMiddleware(env))

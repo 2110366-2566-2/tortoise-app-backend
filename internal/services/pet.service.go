@@ -35,11 +35,6 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 // 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
 // }
 
-// GetPetBySeller godoc
-// @Method GET
-// @Summary Get pets by seller
-// @Description Get pets by seller id
-// @Endpoint /api/v1/pets/seller/:userID
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	pets, err := h.dbHandler.GetPetBySeller(c, c.Param("userID"))
 	if err != nil {
@@ -56,10 +51,15 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 }
 
 // GetPetByPetID godoc
-// @Method GET
-// @Summary Get pet by pet id
-// @Description Get pet by pet id
-// @Endpoint /api/v1/pets/:petID
+// @Summary Get single pet by petID
+// @tags pets
+// @Description Get single pet by petID
+// @id GetPetByPetID
+// @produce json
+// @Param petID path string true "ID of the pet to perform the operation on"
+// @Router /api/v1/pets/{petID} [get]
+// @Success 200 {object} models.PetResponse
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
 	pet, err := h.dbHandler.GetPetByPetID(c, id)
@@ -76,10 +76,25 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 }
 
 // GetPetFilteredPets godoc
-// @Method GET
 // @Summary Get filtered pets
+// @tags pets
 // @Description Get filtered pets by filter params
-// @Endpoint /api/v1/pets/
+// @id GetFilteredPets
+// @produce json
+// @Router /api/v1/pets/ [get]
+// @Param category query string false "Category of pet"
+// @Param species query string false "Species of pet"
+// @Param sex query string false "Sex of pet"
+// @Param behavior query string false "Behavior of pet"
+// @Param minAge query int false "Minimum age of pet"
+// @Param maxAge query int false "Maximum age of pet"
+// @Param minWeight query int false "Minimum weight of pet"
+// @Param maxWeight query int false "Maximum weight of pet"
+// @Param minPrice query int false "Minimum price of pet"
+// @Param maxPrice query int false "Maximum price of pet"
+// @Success 200 {object} models.PetCardResponse
+// @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 	category := c.QueryArray("category")
 	species := c.QueryArray("species")
@@ -147,11 +162,6 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
 }
 
-// CreatePet godoc
-// @Method POST
-// @Summary Create pet
-// @Description Create pet with user id
-// @Endpoint /api/v1/pets/seller/:userID
 func (h *PetHandler) CreatePet(c *gin.Context) {
 	var pet models.Pet
 	if err := c.BindJSON(&pet); err != nil {
@@ -206,10 +216,17 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 }
 
 // UpdatePet godoc
-// @Method PUT
 // @Summary Update pet
-// @Description Update pet by pet id
-// @Endpoint /api/v1/pets/pet/:petID
+// @Description Update pet by pet ID
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Param petID path string true "ID of the pet to perform the operation on"
+// @Param Pet body models.PetRequest true "Pet object that needs to be updated"
+// @Router /pets/pet/{petID} [put]
+// @Success 200 {object} models.PetResponse "return updated pet"
+// @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -247,10 +264,15 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 }
 
 // DeletePet godoc
-// @Method DELETE
 // @Summary Delete pet
-// @Description Delete pet by pet id and delete pet from user's pets
-// @Endpoint /api/v1/pets/pet/:petID
+// @Description Delete pet by pet ID and delete pet from user's pets
+// @Tags pets
+// @Accept json
+// @Produce json
+// @Param petID path string true "ID of the pet to delete"
+// @Router /pets/pet/{petID} [delete]
+// @Success 200 {object} models.DeletePetResponse "return deleted count"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) DeletePet(c *gin.Context) {
 	// get pet
 	pet, err := h.dbHandler.GetPetByPetID(c, c.Param("petID"))
@@ -285,11 +307,6 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
-// GetMasterData godoc
-// @Method GET
-// @Summary Get master data
-// @Description Get master data for pet
-// @Endpoint /api/v1/pets/master
 func (h *PetHandler) GetMasterData(c *gin.Context) {
 	masterData, err := h.dbHandler.GetAllMasterData(c)
 	if err != nil {
@@ -299,11 +316,6 @@ func (h *PetHandler) GetMasterData(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "count": len(*masterData), "data": masterData})
 }
 
-// GetMasterDataByCategory godoc
-// @Method GET
-// @Summary Get master data by category
-// @Description Get master data by category
-// @Endpoint /api/v1/pets/master/:category
 func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 	masterData, err := h.dbHandler.GetMasterDataByCategory(c, c.Param("category"))
 	if err != nil {
@@ -314,11 +326,6 @@ func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": masterData})
 }
 
-// GetCategories godoc
-// @Method GET
-// @Summary Get categories
-// @Description Get list of categories
-// @Endpoint /api/v1/pets/master/categories
 func (h *PetHandler) GetCategories(c *gin.Context) {
 	categories, err := h.dbHandler.GetCategories(c)
 	if err != nil {

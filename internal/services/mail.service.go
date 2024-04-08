@@ -53,11 +53,6 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": "send successfully"})
 }
 
-// SentOTP godoc
-// @Method POST
-// @Summary Sent OTP
-// @Description Sent OTP to user's email
-// @Endpoint /api/v1/user/sent-otp
 func (h *UserHandler) SentOTP(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -113,11 +108,6 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": "send OTP successfully"})
 }
 
-// ValidateOTP godoc
-// @Method POST
-// @Summary Validate OTP
-// @Description Validate OTP
-// @Endpoint /api/v1/user/checkotp
 func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	var res models.OTPResponse
 	err := c.BindJSON(&res)

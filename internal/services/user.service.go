@@ -25,11 +25,6 @@ func NewUserHandler(db *database.Handler, stg *storage.Handler) *UserHandler {
 	}
 }
 
-// GetUserByUserID godoc
-// @Method GET
-// @Summary Get user by user id
-// @Description Get user by user id
-// @Endpoint /api/v1/user/:userID
 func (h *UserHandler) GetUserByUserID(c *gin.Context) {
 	id := c.Param("userID")
 	user, err := h.dbHandler.GetUserByUserID(c, id)
@@ -45,11 +40,6 @@ func (h *UserHandler) GetUserByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": &user})
 }
 
-// UpdatePasswd godoc
-// @Method PUT
-// @Summary Update user's password
-// @Description Update user's password by user id
-// @Endpoint /api/v1/user/passwd/:userID
 func (h *UserHandler) UpdateUserPasswd(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -106,11 +96,6 @@ func (h *UserHandler) UpdateUserPasswd(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
 }
 
-// UpdateUser godoc
-// @Method PUT
-// @Summary Update user's profile
-// @Description Update user's profile
-// @Endpoint /api/v1/user/:userID
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -153,11 +138,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
 }
 
-// DeleteUser godoc
-// @Method DELETE
-// @Summary Delete user
-// @Description Delete user that appears in all schema and delete pet if user is a seller
-// @Endpoint /api/v1/user/:userID
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	user, err := h.dbHandler.GetUserByUserID(c, c.Param("userID"))
 	if err != nil {
@@ -191,11 +171,6 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
-// UpdateForgotPassword godoc
-// @Method PUT
-// @Summary Update user's password by email
-// @Description Update user's password by email
-// @Endpoint /api/v1/user/forgotpasswd
 func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 	var reset models.ResetPassword
 	if err := c.BindJSON(&reset); err != nil {
@@ -241,11 +216,6 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 
 }
 
-// WhoAmI godoc
-// @Method GET
-// @Summary Get my profile
-// @Description Get my profile
-// @Endpoint /api/v1/user/me
 func (h *UserHandler) WhoAmI(c *gin.Context) {
 	userID, exist := c.Get("userID")
 	if !exist {

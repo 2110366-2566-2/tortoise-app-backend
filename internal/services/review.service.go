@@ -20,11 +20,6 @@ func NewReviewHandler(handler *database.Handler) *ReviewHandler {
 	return &ReviewHandler{handler: handler}
 }
 
-// CreateReview godoc
-// @Method POST
-// @Summary Create review
-// @Description Create review with user id
-// @Endpoint /api/v1/review/create
 func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	var review models.Review
 	if err := c.BindJSON(&review); err != nil {
@@ -54,11 +49,6 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"success": true, "data": &review})
 }
 
-// AddComment godoc
-// @Method POST
-// @Summary Add comment
-// @Description Add comment to review
-// @Endpoint /api/v1/review/:reviewID/comment
 func (h *ReviewHandler) AddComment(c *gin.Context) {
 	// get user id from token
 	userID, exist := c.Get("userID")
@@ -87,11 +77,6 @@ func (h *ReviewHandler) AddComment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": res})
 }
 
-// GetReviewBySeller godoc
-// @Method GET
-// @Summary Get review by seller
-// @Description Get review by seller id
-// @Endpoint /api/v1/review/seller/:sellerID
 func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
 	reviews, err := h.handler.GetReviewByUserID(c, c.Param("sellerID"))
 	if err != nil {
@@ -107,11 +92,6 @@ func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*reviews), "data": &reviews})
 }
 
-// GetReviewByID godoc
-// @Method GET
-// @Summary Get review by review id
-// @Description Get review by review id
-// @Endpoint /api/v1/review/:reviewID
 func (h *ReviewHandler) GetReviewByID(c *gin.Context) {
 	review, err := h.handler.GetReviewByReviewID(c, c.Param("reviewID"))
 	if err != nil {
@@ -126,11 +106,6 @@ func (h *ReviewHandler) GetReviewByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": review})
 }
 
-// DeleteReview godoc
-// @Method DELETE
-// @Summary Delete review
-// @Description Delete review by review id
-// @Endpoint /api/v1/review/:reviewID
 func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 	userID, exist := c.Get("userID")
 	role, _ := c.Get("role")

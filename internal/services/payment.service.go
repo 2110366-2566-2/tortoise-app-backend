@@ -25,11 +25,6 @@ func NewPaymentHandler(handler *database.Handler, env configs.EnvVars) *PaymentH
 	}
 }
 
-// CreatePayment godoc
-// @Method POST
-// @Summary Create payment
-// @Description Create payment for pet
-// @Endpoint /api/v1/payment/create
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	var transaction models.Transaction
 
@@ -110,11 +105,6 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	}})
 }
 
-// ConfirmPayment godoc
-// @Method POST
-// @Summary Confirm payment
-// @Description Confirm payment for pet
-// @Endpoint /api/v1/payment/confirm
 func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 	var payment models.PaymentIntent
 

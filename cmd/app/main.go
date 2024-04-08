@@ -8,6 +8,10 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/app"
 )
 
+// @title PetPal API
+// @version 1.0
+// @description PetPal API is a simple API for pet marketplaces.
+// @schemes https http
 func main() {
 	// Set the exit code to 0 by default
 	exitCode := 0
