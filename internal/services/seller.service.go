@@ -6,6 +6,7 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +25,12 @@ func (h *SellerHandler) AddBankAccount(c *gin.Context) {
 		return
 	}
 
-	res, err := h.handler.AddBankAccount(c, c.Param("sellerID"), bankAccount)
+	// prevent xss
+	bankAccount.BankAccountName = utils.SanitizeString(bankAccount.BankAccountName)
+	bankAccount.BankAccountNumber = utils.SanitizeString(bankAccount.BankAccountNumber)
+	bankAccount.BankName = utils.SanitizeString(bankAccount.BankName)
+
+	res, err := h.handler.AddBankAccount(c, utils.SanitizeString(c.Param("sellerID")), bankAccount)
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -34,7 +40,7 @@ func (h *SellerHandler) AddBankAccount(c *gin.Context) {
 }
 
 func (h *SellerHandler) GetBankAccount(c *gin.Context) {
-	bankAccount, err := h.handler.GetBankAccount(c.Param("sellerID"))
+	bankAccount, err := h.handler.GetBankAccount(utils.SanitizeString(c.Param("sellerID")))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -44,7 +50,7 @@ func (h *SellerHandler) GetBankAccount(c *gin.Context) {
 }
 
 func (h *SellerHandler) DeleteBankAccount(c *gin.Context) {
-	res, err := h.handler.DeleteBankAccount(c.Param("sellerID"))
+	res, err := h.handler.DeleteBankAccount(utils.SanitizeString(c.Param("sellerID")))
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
@@ -54,7 +60,7 @@ func (h *SellerHandler) DeleteBankAccount(c *gin.Context) {
 }
 
 func (h *SellerHandler) GetSeller(c *gin.Context) {
-	seller, err := h.handler.GetSellerBySellerID(c, c.Param("sellerID"))
+	seller, err := h.handler.GetSellerBySellerID(c, utils.SanitizeString(c.Param("sellerID")))
 	if err != nil {
 		fmt.Println("Error: ", err)
 		if strings.Contains(err.Error(), "failed to find seller") {
@@ -70,7 +76,7 @@ func (h *SellerHandler) GetSeller(c *gin.Context) {
 
 func (h *SellerHandler) GetAllSellers(c *gin.Context) {
 	// query
-	status := c.Query("status")
+	status := utils.SanitizeString(c.Query("status"))
 	sellers, err := h.handler.GetAllSellers(c, status)
 	if err != nil {
 		fmt.Println("Error: ", err)

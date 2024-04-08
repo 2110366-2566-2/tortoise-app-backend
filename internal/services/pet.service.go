@@ -3,11 +3,11 @@ package services
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -36,7 +36,9 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 // }
 
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
-	pets, err := h.dbHandler.GetPetBySeller(c, c.Param("userID"))
+	// prevent xss attack
+	sanitizedInput := utils.SanitizeString(c.Param("userID"))
+	pets, err := h.dbHandler.GetPetBySeller(c, sanitizedInput)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get pets by seller"
@@ -62,7 +64,8 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
-	pet, err := h.dbHandler.GetPetByPetID(c, id)
+	sanitizedInput := utils.SanitizeString(id)
+	pet, err := h.dbHandler.GetPetByPetID(c, sanitizedInput)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get pet by pet id"
@@ -96,6 +99,9 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @Failure 400 {object} models.ErrorResponse "bad request"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetFilteredPets(c *gin.Context) {
+
+	// prevent http parameter pollution
+
 	category := c.QueryArray("category")
 	species := c.QueryArray("species")
 	sex := c.QueryArray("sex")
@@ -110,47 +116,58 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 	var minPrice, maxPrice, minAge, maxAge, minWeight, maxWeight int
 	var err error
 
-	if minPriceStr != "" {
-		minPrice, err = strconv.Atoi(minPriceStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minPrice value"})
-			return
-		}
+	// Validate parameters
+	category, err = utils.ValidateArrayQueryParam(category)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if maxPriceStr != "" {
-		maxPrice, err = strconv.Atoi(maxPriceStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxPrice value"})
-			return
-		}
+	species, err = utils.ValidateArrayQueryParam(species)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if minAgeStr != "" {
-		minAge, err = strconv.Atoi(minAgeStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minAge value"})
-			return
-		}
+	sex, err = utils.ValidateArrayQueryParam(sex)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if maxAgeStr != "" {
-		maxAge, err = strconv.Atoi(maxAgeStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxAge value"})
-			return
-		}
+	behavior, err = utils.ValidateArrayQueryParam(behavior)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if minWeightStr != "" {
-		minWeight, err = strconv.Atoi(minWeightStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minWeight value"})
-			return
-		}
+
+	// Validate and convert query parameters to integers
+	minAge, err = utils.GetIntQueryParam(minAgeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minAge value"})
+		return
 	}
-	if maxWeightStr != "" {
-		maxWeight, err = strconv.Atoi(maxWeightStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxWeight value"})
-			return
-		}
+	maxAge, err = utils.GetIntQueryParam(maxAgeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxAge value"})
+		return
+	}
+	minWeight, err = utils.GetIntQueryParam(minWeightStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minWeight value"})
+		return
+	}
+	maxWeight, err = utils.GetIntQueryParam(maxWeightStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxWeight value"})
+		return
+	}
+	minPrice, err = utils.GetIntQueryParam(minPriceStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minPrice value"})
+		return
+	}
+	maxPrice, err = utils.GetIntQueryParam(maxPriceStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxPrice value"})
+		return
 	}
 
 	pets, err := h.dbHandler.GetFilteredPetCards(c, category, species, sex, behavior, minAge, maxAge, minWeight, maxWeight, minPrice, maxPrice)
@@ -170,8 +187,12 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		return
 	}
 
+	// prevent xss attack
+	utils.PetSanitize(&pet)
+
 	// check if seller exists
-	sellerID := c.Param("userID")
+	sellerID := utils.SanitizeString(c.Param("userID"))
+
 	_, err := h.dbHandler.GetSellerBySellerID(c, sellerID)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -231,6 +252,9 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
+	// prevent xss attack
+	utils.BsonSanitize(&data)
+
 	// find if have media to upload
 	if media, ok := data["media"]; ok {
 		urls, err := h.stgHandler.AddImage(c, c.Param("petID"), "pets", media.(string))
@@ -245,7 +269,9 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 		data["media"] = urls
 	}
 
-	res, err := h.dbHandler.UpdateOnePet(c, c.Param("petID"), data)
+	petId := utils.SanitizeString(c.Param("petID"))
+
+	res, err := h.dbHandler.UpdateOnePet(c, petId, data)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update pet"})
@@ -275,14 +301,15 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) DeletePet(c *gin.Context) {
 	// get pet
-	pet, err := h.dbHandler.GetPetByPetID(c, c.Param("petID"))
+	petID := utils.SanitizeString(c.Param("petID"))
+	pet, err := h.dbHandler.GetPetByPetID(c, petID)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "pet not found"})
 		return
 	}
 	// delete pet
-	res, err := h.dbHandler.DeleteOnePet(c, c.Param("petID"))
+	res, err := h.dbHandler.DeleteOnePet(c, petID)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete pet"
@@ -297,7 +324,7 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	if len(pet.Media) > 0 {
 		// delete media
 		folder := "pets/" + pet.Seller_id.Hex()
-		if err := h.stgHandler.DeleteImage(c, c.Param("petID"), folder); err != nil {
+		if err := h.stgHandler.DeleteImage(c, petID, folder); err != nil {
 			log.Println("Error: ", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete media"})
 			return
@@ -317,7 +344,8 @@ func (h *PetHandler) GetMasterData(c *gin.Context) {
 }
 
 func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
-	masterData, err := h.dbHandler.GetMasterDataByCategory(c, c.Param("category"))
+	catagory := utils.SanitizeString(c.Param("category"))
+	masterData, err := h.dbHandler.GetMasterDataByCategory(c, catagory)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(500, gin.H{"success": false, "error": "failed to get master data by category"})

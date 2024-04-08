@@ -1,13 +1,13 @@
 package services
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -27,6 +27,8 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind Review"})
 		return
 	}
+
+	review.Description = utils.SanitizeString(review.Description)
 
 	// get user id from token
 	userID, exist := c.Get("userID")
@@ -78,7 +80,7 @@ func (h *ReviewHandler) AddComment(c *gin.Context) {
 }
 
 func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
-	reviews, err := h.handler.GetReviewByUserID(c, c.Param("sellerID"))
+	reviews, err := h.handler.GetReviewByUserID(c, utils.SanitizeString(c.Param("sellerID")))
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get reviews by seller"
@@ -93,7 +95,7 @@ func (h *ReviewHandler) GetReviewBySeller(c *gin.Context) {
 }
 
 func (h *ReviewHandler) GetReviewByID(c *gin.Context) {
-	review, err := h.handler.GetReviewByReviewID(c, c.Param("reviewID"))
+	review, err := h.handler.GetReviewByReviewID(c, utils.SanitizeString(c.Param("reviewID")))
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get review by id"
@@ -110,8 +112,8 @@ func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 	userID, exist := c.Get("userID")
 	role, _ := c.Get("role")
 	// check type of userID and role
-	fmt.Println("userID: ", userID)
-	fmt.Println("role: ", role)
+	// fmt.Println("userID: ", userID)
+	// fmt.Println("role: ", role)
 
 	if !exist {
 		log.Println("Error: Unable to get userID")

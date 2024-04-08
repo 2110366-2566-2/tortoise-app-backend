@@ -7,10 +7,14 @@ import (
 	"errors"
 	"fmt"
 	"net/mail"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/microcosm-cc/bluemonday"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -89,4 +93,89 @@ func ValidateBase64Image(base64Image string) (*[]string, error) {
 
 	return &splitString, nil
 
+}
+
+var p = bluemonday.UGCPolicy()
+
+func GetIntQueryParam(param string) (int, error) {
+	// prevent xss attack
+	paramValue := p.Sanitize(param)
+	if paramValue == "" {
+		return 0, nil // No value provided, return default
+	}
+	intValue, err := strconv.Atoi(paramValue)
+	if err != nil {
+		return 0, err // Invalid value
+	}
+
+	if intValue < 0 {
+		return 0, errors.New("invalid value")
+	}
+
+	return intValue, nil
+}
+
+func ValidateStringQueryParam(param string) (string, error) {
+	// prevent xss attack
+	paramValue := p.Sanitize(param)
+	if paramValue == "" {
+		return "", nil // No value provided, return default
+	}
+
+	return paramValue, nil
+}
+
+func ValidateArrayQueryParam(param []string) ([]string, error) {
+	// prevent xss attack
+	var sanitizedParams []string
+	sanitizedParams = append(sanitizedParams, param...)
+	return sanitizedParams, nil
+}
+
+func SanitizeString(data string) string {
+	return p.Sanitize(data)
+}
+
+func PetSanitize(pet *models.Pet) {
+	pet.Name = p.Sanitize(pet.Name)
+	pet.Description = p.Sanitize(pet.Description)
+	pet.Category = p.Sanitize(pet.Category)
+	pet.Species = p.Sanitize(pet.Species)
+	pet.Behavior = p.Sanitize(pet.Behavior)
+	pet.Media = p.Sanitize(pet.Media)
+	pet.Sex = p.Sanitize(pet.Sex)
+	for i := range pet.Medical_records {
+		pet.Medical_records[i].Description = p.Sanitize(pet.Medical_records[i].Description)
+		pet.Medical_records[i].Medical_date = p.Sanitize(pet.Medical_records[i].Medical_date)
+		pet.Medical_records[i].Medical_id = p.Sanitize(pet.Medical_records[i].Medical_id)
+	}
+}
+
+func BsonSanitize(data *bson.M) {
+	for key, value := range *data {
+		switch value := value.(type) {
+		case string:
+			(*data)[key] = p.Sanitize(value)
+		case bson.M:
+			BsonSanitize(&value)
+		}
+	}
+}
+
+func UserSaniatize(user *models.User) {
+	user.Username = p.Sanitize(user.Username)
+	user.Email = p.Sanitize(user.Email)
+	user.FirstName = p.Sanitize(user.FirstName)
+	user.LastName = p.Sanitize(user.LastName)
+	// user.Password = p.Sanitize(user.Password)
+	user.Gender = p.Sanitize(user.Gender)
+	user.PhoneNumber = p.Sanitize(user.PhoneNumber)
+	user.Image = p.Sanitize(user.Image)
+	user.Address.Province = p.Sanitize(user.Address.Province)
+	user.Address.District = p.Sanitize(user.Address.District)
+	user.Address.SubDistrict = p.Sanitize(user.Address.SubDistrict)
+	user.Address.PostalCode = p.Sanitize(user.Address.PostalCode)
+	user.Address.Street = p.Sanitize(user.Address.Street)
+	user.Address.Building = p.Sanitize(user.Address.Building)
+	user.Address.HouseNumber = p.Sanitize(user.Address.HouseNumber)
 }

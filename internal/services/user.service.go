@@ -106,6 +106,8 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	utils.BsonSanitize(&data)
+
 	// check if have media to upload
 	if image, ok := data["image"]; ok {
 		url, err := h.stgHandler.AddImage(c, c.Param("userID"), "users", image.(string))
@@ -139,7 +141,8 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	user, err := h.dbHandler.GetUserByUserID(c, c.Param("userID"))
+	userID := utils.SanitizeString(c.Param("userID"))
+	user, err := h.dbHandler.GetUserByUserID(c, userID)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "user not found"})
@@ -147,7 +150,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 
 	// delete user
-	res, err := h.dbHandler.DeleteOneUser(c, c.Param("userID"), h.stgHandler)
+	res, err := h.dbHandler.DeleteOneUser(c, userID, h.stgHandler)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete user"
@@ -161,7 +164,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	// if user have image, delete it
 	if len(user.Image) > 0 {
 		// delete media
-		if err := h.stgHandler.DeleteImage(c, c.Param("userID"), "users"); err != nil {
+		if err := h.stgHandler.DeleteImage(c, userID, "users"); err != nil {
 			log.Println("Error: ", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete media"})
 			return

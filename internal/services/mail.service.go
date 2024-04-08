@@ -21,6 +21,9 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
+	// Sanitize data
+	utils.BsonSanitize(&data)
+
 	user, err := h.dbHandler.GetUserByMail(c, data)
 
 	if err != nil {
@@ -56,6 +59,9 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 func (h *UserHandler) SentOTP(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	// Sanitize data
+	utils.BsonSanitize(&data)
 
 	// Check is email exist
 	user, err := h.dbHandler.GetUserByMail(c, data)
@@ -115,6 +121,9 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind data"})
 		return
 	}
+
+	res.Email = utils.SanitizeString(res.Email)
+	res.OTP = utils.SanitizeString(res.OTP)
 
 	// Check is email exist
 	user, err := h.dbHandler.GetUserByMail(c, bson.M{"email": res.Email})
@@ -179,6 +188,8 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 func (h *UserHandler) CheckMail(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	utils.BsonSanitize(&data)
 
 	user, err := h.dbHandler.GetUserByMail(c, data)
 
