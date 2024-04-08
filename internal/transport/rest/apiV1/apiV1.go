@@ -36,6 +36,7 @@ func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, en
 	// ================ Unauthorized routes ================
 
 	UnauthorizedRoutes(apiV1, dbH, stgH)
+	// petsGroup := apiV1.Group("/pets")
 
 	// ============ End of Unauthorized routes ============
 
