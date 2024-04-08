@@ -25,20 +25,15 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 	}
 }
 
-// GetAllPets godoc
-// @Method GET
-// @Summary Get all pets
-// @Description Get all pets cards
-// @Endpoint /api/v1/pets
-func (h *PetHandler) GetAllPets(c *gin.Context) {
-	pets, err := h.dbHandler.GetAllPetCards(c)
-	if err != nil {
-		log.Println("Error: ", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
-}
+// func (h *PetHandler) GetAllPets(c *gin.Context) {
+// 	pets, err := h.dbHandler.GetAllPetCards(c)
+// 	if err != nil {
+// 		log.Println("Error: ", err)
+// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
+// 		return
+// 	}
+// 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
+// }
 
 // GetPetBySeller godoc
 // @Method GET
@@ -84,7 +79,7 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @Method GET
 // @Summary Get filtered pets
 // @Description Get filtered pets by filter params
-// @Endpoint /api/v1/pets/filter
+// @Endpoint /api/v1/pets/
 func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 	category := c.QueryArray("category")
 	species := c.QueryArray("species")
@@ -214,7 +209,7 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 // @Method PUT
 // @Summary Update pet
 // @Description Update pet by pet id
-// @Endpoint /api/v1/pets/:petID
+// @Endpoint /api/v1/pets/pet/:petID
 func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -255,7 +250,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // @Method DELETE
 // @Summary Delete pet
 // @Description Delete pet by pet id and delete pet from user's pets
-// @Endpoint /api/v1/pets/:petID
+// @Endpoint /api/v1/pets/pet/:petID
 func (h *PetHandler) DeletePet(c *gin.Context) {
 	// get pet
 	pet, err := h.dbHandler.GetPetByPetID(c, c.Param("petID"))

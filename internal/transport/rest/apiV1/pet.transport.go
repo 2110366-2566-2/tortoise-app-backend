@@ -18,14 +18,14 @@ func PetController(r *gin.RouterGroup, db *database.Handler, stg *storage.Handle
 	sellerAdmin.Use(roleMiddleware("seller", "admin"))
 
 	// Set up routes
-	allUser.GET("/", petHandler.GetAllPets)
-	allUser.GET("/filter", petHandler.GetFilteredPets)
-	allUser.GET("/:petID", petHandler.GetPetByPetID)
+	// allUser.GET("/old", petHandler.GetAllPets)
+	allUser.GET("/", petHandler.GetFilteredPets)
+	allUser.GET("/pet/:petID", petHandler.GetPetByPetID)
 	allUser.GET("/seller/:userID", petHandler.GetPetBySeller)
 
 	sellerAdmin.POST("/seller/:userID", petHandler.CreatePet)
-	sellerAdmin.PUT("/:petID", petHandler.UpdatePet)
-	sellerAdmin.DELETE("/:petID", petHandler.DeletePet)
+	sellerAdmin.PUT("/pet/:petID", petHandler.UpdatePet)
+	sellerAdmin.DELETE("/pet/:petID", petHandler.DeletePet)
 
 	// master data
 	allUser.GET("/master", petHandler.GetMasterData)
