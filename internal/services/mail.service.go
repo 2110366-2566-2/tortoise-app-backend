@@ -21,6 +21,9 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
+	// Sanitize data
+	utils.BsonSanitize(&data)
+
 	user, err := h.dbHandler.GetUserByMail(c, data)
 
 	if err != nil {
@@ -53,14 +56,12 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": "send successfully"})
 }
 
-// SentOTP godoc
-// @Method POST
-// @Summary Sent OTP
-// @Description Sent OTP to user's email
-// @Endpoint /api/v1/user/sent-otp
 func (h *UserHandler) SentOTP(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	// Sanitize data
+	utils.BsonSanitize(&data)
 
 	// Check is email exist
 	user, err := h.dbHandler.GetUserByMail(c, data)
@@ -113,11 +114,6 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": "send OTP successfully"})
 }
 
-// ValidateOTP godoc
-// @Method POST
-// @Summary Validate OTP
-// @Description Validate OTP
-// @Endpoint /api/v1/user/checkotp
 func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	var res models.OTPResponse
 	err := c.BindJSON(&res)
@@ -125,6 +121,9 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind data"})
 		return
 	}
+
+	res.Email = utils.SanitizeString(res.Email)
+	res.OTP = utils.SanitizeString(res.OTP)
 
 	// Check is email exist
 	user, err := h.dbHandler.GetUserByMail(c, bson.M{"email": res.Email})
@@ -189,6 +188,8 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 func (h *UserHandler) CheckMail(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	utils.BsonSanitize(&data)
 
 	user, err := h.dbHandler.GetUserByMail(c, data)
 

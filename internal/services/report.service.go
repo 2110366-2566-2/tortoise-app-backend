@@ -7,6 +7,7 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -26,6 +27,9 @@ func (h *ReportHandler) CreatePartyReport(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind Report"})
 		return
 	}
+
+	report.Description = utils.SanitizeString(report.Description)
+
 	_, err := h.handler.CreatePartyReport(c, &report)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -43,6 +47,9 @@ func (h *ReportHandler) CreateSystemReport(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind partyReport"})
 		return
 	}
+
+	report.Description = utils.SanitizeString(report.Description)
+
 	_, err := h.handler.CreateSystemReport(c, &report)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -56,6 +63,8 @@ func (h *ReportHandler) CreateSystemReport(c *gin.Context) {
 func (h *ReportHandler) GetReport(c *gin.Context) {
 	category := c.Query("category")
 	is_solved_str := c.Query("is_solved")
+
+	category = utils.SanitizeString(category)
 
 	var is_solved *bool
 	if is_solved_str != "" {

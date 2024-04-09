@@ -16,6 +16,10 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
 	"github.com/gin-gonic/gin"
+
+	docs "github.com/2110366-2566-2/tortoise-app-backend/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Run(env configs.EnvVars) (func(), error) {
@@ -43,7 +47,8 @@ func Run(env configs.EnvVars) (func(), error) {
 			fmt.Println()
 			log.Println("Shutdown Server ...")
 
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 0*time.Second)
 			defer cancel()
 
 			if err := srv.Shutdown(ctx); err != nil {
@@ -96,8 +101,21 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// init the server
 	r := gin.Default()
 
+	docs.SwaggerInfo.BasePath = "/"
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// set up CORS
 	r.Use(CORSMiddleware(env))
+
+	// Set security headers
+	r.Use(func(c *gin.Context) {
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("X-XSS-Protection", "1; mode=block")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Content-Security-Policy", "default-src 'self'")
+		c.Next()
+	})
 
 	// setup the routes
 	rest.SetupRoutes(r)

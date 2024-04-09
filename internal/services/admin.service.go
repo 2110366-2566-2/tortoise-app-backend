@@ -12,11 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// AdminRegisterHandler godoc
-// @Method POST
-// @Summary Register admin
-// @Description Register admin
-// @Endpoint /api/v1/admin/register
 func AdminRegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handler) {
 	var admin models.Admin
 
@@ -69,11 +64,6 @@ func AdminRegisterHandler(c *gin.Context, h *database.Handler, storage *storage.
 	c.JSON(200, gin.H{"message": "Admin created successfully", "admin": &admin})
 }
 
-// LoginHandlerForAdmin godoc
-// @Method POST
-// @Summary Login admin
-// @Description Login admin
-// @Endpoint /api/v1/admin/login
 func LoginHandlerForAdmin(c *gin.Context, h *database.Handler) {
 	var loginRequest loginRequest
 
@@ -104,11 +94,6 @@ func LoginHandlerForAdmin(c *gin.Context, h *database.Handler) {
 	c.JSON(200, gin.H{"success": true, "token": tokenString})
 }
 
-// ApproveSeller godoc
-// @Method POST
-// @Summary Approve seller
-// @Description Approve seller by admin
-// @Endpoint /api/v1/admin/approve-seller/:sellerID
 func ApproveSeller(c *gin.Context, h *database.Handler) {
 	sellerID := c.Param("sellerID")
 	_, err := h.ChangeStatus(c, sellerID, "verified")

@@ -19,6 +19,9 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		return
 	}
 
+	// Sanitize the user input
+	utils.UserSaniatize(&user)
+
 	var role string
 	if user.Role == 1 {
 		role = "seller"

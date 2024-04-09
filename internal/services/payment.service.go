@@ -26,10 +26,17 @@ func NewPaymentHandler(handler *database.Handler, env configs.EnvVars) *PaymentH
 }
 
 // CreatePayment godoc
-// @Method POST
-// @Summary Create payment
-// @Description Create payment for pet
-// @Endpoint /api/v1/payment/create
+// @Summary Create a new payment
+// @Description Create a new payment for a transaction
+// @Security ApiKeyAuth
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Router /payment/create [post]
+// @Param payment body models.CreatePaymentBody true "Payment object"
+// @Success 201 {object} models.CreatePaymentResponse
+// @Failure 400 {object} models.ErrorResponse "Bad Request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 	var transaction models.Transaction
 
@@ -111,10 +118,17 @@ func (h *PaymentHandler) CreatePayment(c *gin.Context) {
 }
 
 // ConfirmPayment godoc
-// @Method POST
-// @Summary Confirm payment
-// @Description Confirm payment for pet
-// @Endpoint /api/v1/payment/confirm
+// @Summary Confirm a payment
+// @Description Confirm a payment for a transaction
+// @Security ApiKeyAuth
+// @Tags Payments
+// @Accept json
+// @Produce json
+// @Param Payment body models.PaymentIntent true "Payment object"
+// @Router /payment/confirm [post]
+// @Success 200 {object} models.ConfirmPaymentResponse
+// @Failure 400 {object} models.ErrorResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 func (h *PaymentHandler) ConfirmPayment(c *gin.Context) {
 	var payment models.PaymentIntent
 

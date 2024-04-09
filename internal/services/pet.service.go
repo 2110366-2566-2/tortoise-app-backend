@@ -3,11 +3,11 @@ package services
 import (
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
+	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,23 +25,33 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 	}
 }
 
-// func (h *PetHandler) GetAllPets(c *gin.Context) {
-// 	pets, err := h.dbHandler.GetAllPetCards(c)
-// 	if err != nil {
-// 		log.Println("Error: ", err)
-// 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
-// 		return
-// 	}
-// 	c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
-// }
+//	func (h *PetHandler) GetAllPets(c *gin.Context) {
+//		pets, err := h.dbHandler.GetAllPetCards(c)
+//		if err != nil {
+//			log.Println("Error: ", err)
+//			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to get all pets"})
+//			return
+//		}
+//		c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
+//	}
+//
 
-// GetPetBySeller godoc
-// @Method GET
-// @Summary Get pets by seller
-// @Description Get pets by seller id
-// @Endpoint /api/v1/pets/seller/:userID
+// GetPetBySellerID godoc
+// @Summary Get pets by sellerID
+// @tags Pets
+// @Description Get pets by sellerID
+// @Security ApiKeyAuth
+// @id GetPetBySeller
+// @produce json
+// @Param sellerID path string true "ID of the seller to perform the operation on"
+// @Router /api/v1/pets/seller/{sellerID} [get]
+// @Success 200 {object} models.PetCardResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
-	pets, err := h.dbHandler.GetPetBySeller(c, c.Param("userID"))
+	// prevent xss attack
+	sanitizedInput := utils.SanitizeString(c.Param("userID"))
+	pets, err := h.dbHandler.GetPetBySeller(c, sanitizedInput)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get pets by seller"
@@ -56,13 +66,21 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 }
 
 // GetPetByPetID godoc
-// @Method GET
-// @Summary Get pet by pet id
-// @Description Get pet by pet id
-// @Endpoint /api/v1/pets/:petID
+// @Summary Get single pet by petID
+// @tags Pets
+// @Description Get single pet by petID
+// @Security ApiKeyAuth
+// @id GetPetByPetID
+// @produce json
+// @Param petID path string true "ID of the pet to perform the operation on"
+// @Router /api/v1/pets/pet/{petID} [get]
+// @Success 200 {object} models.PetResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
-	pet, err := h.dbHandler.GetPetByPetID(c, id)
+	sanitizedInput := utils.SanitizeString(id)
+	pet, err := h.dbHandler.GetPetByPetID(c, sanitizedInput)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to get pet by pet id"
@@ -76,11 +94,31 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 }
 
 // GetPetFilteredPets godoc
-// @Method GET
 // @Summary Get filtered pets
+// @tags Pets
 // @Description Get filtered pets by filter params
-// @Endpoint /api/v1/pets/
+// @id GetFilteredPets
+// @Security ApiKeyAuth
+// @produce json
+// @Router /api/v1/pets/ [get]
+// @Param category query string false "Category of pet"
+// @Param species query string false "Species of pet"
+// @Param sex query string false "Sex of pet"
+// @Param behavior query string false "Behavior of pet"
+// @Param minAge query int false "Minimum age of pet"
+// @Param maxAge query int false "Maximum age of pet"
+// @Param minWeight query int false "Minimum weight of pet"
+// @Param maxWeight query int false "Maximum weight of pet"
+// @Param minPrice query int false "Minimum price of pet"
+// @Param maxPrice query int false "Maximum price of pet"
+// @Success 200 {object} models.PetCardResponse
+// @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetFilteredPets(c *gin.Context) {
+
+	// prevent http parameter pollution
+
 	category := c.QueryArray("category")
 	species := c.QueryArray("species")
 	sex := c.QueryArray("sex")
@@ -95,47 +133,58 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 	var minPrice, maxPrice, minAge, maxAge, minWeight, maxWeight int
 	var err error
 
-	if minPriceStr != "" {
-		minPrice, err = strconv.Atoi(minPriceStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minPrice value"})
-			return
-		}
+	// Validate parameters
+	category, err = utils.ValidateArrayQueryParam(category)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if maxPriceStr != "" {
-		maxPrice, err = strconv.Atoi(maxPriceStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxPrice value"})
-			return
-		}
+	species, err = utils.ValidateArrayQueryParam(species)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if minAgeStr != "" {
-		minAge, err = strconv.Atoi(minAgeStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minAge value"})
-			return
-		}
+	sex, err = utils.ValidateArrayQueryParam(sex)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if maxAgeStr != "" {
-		maxAge, err = strconv.Atoi(maxAgeStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxAge value"})
-			return
-		}
+	behavior, err = utils.ValidateArrayQueryParam(behavior)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid query parameter"})
+		return
 	}
-	if minWeightStr != "" {
-		minWeight, err = strconv.Atoi(minWeightStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minWeight value"})
-			return
-		}
+
+	// Validate and convert query parameters to integers
+	minAge, err = utils.GetIntQueryParam(minAgeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minAge value"})
+		return
 	}
-	if maxWeightStr != "" {
-		maxWeight, err = strconv.Atoi(maxWeightStr)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxWeight value"})
-			return
-		}
+	maxAge, err = utils.GetIntQueryParam(maxAgeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxAge value"})
+		return
+	}
+	minWeight, err = utils.GetIntQueryParam(minWeightStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minWeight value"})
+		return
+	}
+	maxWeight, err = utils.GetIntQueryParam(maxWeightStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxWeight value"})
+		return
+	}
+	minPrice, err = utils.GetIntQueryParam(minPriceStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid minPrice value"})
+		return
+	}
+	maxPrice, err = utils.GetIntQueryParam(maxPriceStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid maxPrice value"})
+		return
 	}
 
 	pets, err := h.dbHandler.GetFilteredPetCards(c, category, species, sex, behavior, minAge, maxAge, minWeight, maxWeight, minPrice, maxPrice)
@@ -148,10 +197,18 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 }
 
 // CreatePet godoc
-// @Method POST
-// @Summary Create pet
-// @Description Create pet with user id
-// @Endpoint /api/v1/pets/seller/:userID
+// @Summary Create a new pet
+// @Description Creat a new pet
+// @Tags Pets
+// @Accept json
+// @Security ApiKeyAuth
+// @Param sellerID path string true "ID of the seller to perform the operation on"
+// @Param Pet body models.PetRequest true "Pet object that needs to be created"
+// @Router /api/v1/pets/seller/{sellerID} [post]
+// @Success 200 {object} models.PetResponse "return created pet"
+// @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) CreatePet(c *gin.Context) {
 	var pet models.Pet
 	if err := c.BindJSON(&pet); err != nil {
@@ -160,8 +217,12 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 		return
 	}
 
+	// prevent xss attack
+	utils.PetSanitize(&pet)
+
 	// check if seller exists
-	sellerID := c.Param("userID")
+	sellerID := utils.SanitizeString(c.Param("userID"))
+
 	_, err := h.dbHandler.GetSellerBySellerID(c, sellerID)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -206,13 +267,25 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 }
 
 // UpdatePet godoc
-// @Method PUT
 // @Summary Update pet
-// @Description Update pet by pet id
-// @Endpoint /api/v1/pets/pet/:petID
+// @Description Update pet by pet ID
+// @Tags Pets
+// @Security ApiKeyAuth
+// @Accept json
+// @Produce json
+// @Param petID path string true "ID of the pet to perform the operation on"
+// @Param Pet body models.PetRequest true "Pet object that needs to be updated"
+// @Router /api/v1/pets/pet/{petID} [put]
+// @Success 200 {object} models.PetResponse "return updated pet"
+// @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	// prevent xss attack
+	utils.BsonSanitize(&data)
 
 	// find if have media to upload
 	if media, ok := data["media"]; ok {
@@ -228,7 +301,9 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 		data["media"] = urls
 	}
 
-	res, err := h.dbHandler.UpdateOnePet(c, c.Param("petID"), data)
+	petId := utils.SanitizeString(c.Param("petID"))
+
+	res, err := h.dbHandler.UpdateOnePet(c, petId, data)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update pet"})
@@ -247,20 +322,28 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 }
 
 // DeletePet godoc
-// @Method DELETE
 // @Summary Delete pet
-// @Description Delete pet by pet id and delete pet from user's pets
-// @Endpoint /api/v1/pets/pet/:petID
+// @Description Delete pet by pet ID and delete pet from user's pets
+// @Security ApiKeyAuth
+// @Tags Pets
+// @Accept json
+// @Produce json
+// @Param petID path string true "ID of the pet to delete"
+// @Router /api/v1/pets/pet/{petID} [delete]
+// @Success 200 {object} models.DeletePetResponse "return deleted count"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) DeletePet(c *gin.Context) {
 	// get pet
-	pet, err := h.dbHandler.GetPetByPetID(c, c.Param("petID"))
+	petID := utils.SanitizeString(c.Param("petID"))
+	pet, err := h.dbHandler.GetPetByPetID(c, petID)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "pet not found"})
 		return
 	}
 	// delete pet
-	res, err := h.dbHandler.DeleteOnePet(c, c.Param("petID"))
+	res, err := h.dbHandler.DeleteOnePet(c, petID)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete pet"
@@ -275,7 +358,7 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	if len(pet.Media) > 0 {
 		// delete media
 		folder := "pets/" + pet.Seller_id.Hex()
-		if err := h.stgHandler.DeleteImage(c, c.Param("petID"), folder); err != nil {
+		if err := h.stgHandler.DeleteImage(c, petID, folder); err != nil {
 			log.Println("Error: ", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete media"})
 			return
@@ -286,10 +369,16 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 }
 
 // GetMasterData godoc
-// @Method GET
-// @Summary Get master data
-// @Description Get master data for pet
-// @Endpoint /api/v1/pets/master
+// @Summary Get all master data
+// @tags Master Data
+// @Description Get all master data
+// @Security ApiKeyAuth
+// @id GetMasterData
+// @produce json
+// @Router /api/v1/pets/master [get]
+// @Success 200 {object} models.AllMasterDataResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetMasterData(c *gin.Context) {
 	masterData, err := h.dbHandler.GetAllMasterData(c)
 	if err != nil {
@@ -300,12 +389,20 @@ func (h *PetHandler) GetMasterData(c *gin.Context) {
 }
 
 // GetMasterDataByCategory godoc
-// @Method GET
 // @Summary Get master data by category
+// @tags Master Data
 // @Description Get master data by category
-// @Endpoint /api/v1/pets/master/:category
+// @Security ApiKeyAuth
+// @id GetMasterDataByCategory
+// @produce json
+// @Param category path string true "Category of master data"
+// @Router /api/v1/pets/master/{category} [get]
+// @Success 200 {object} models.MasterDataResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
-	masterData, err := h.dbHandler.GetMasterDataByCategory(c, c.Param("category"))
+	catagory := utils.SanitizeString(c.Param("category"))
+	masterData, err := h.dbHandler.GetMasterDataByCategory(c, catagory)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(500, gin.H{"success": false, "error": "failed to get master data by category"})
@@ -315,10 +412,16 @@ func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 }
 
 // GetCategories godoc
-// @Method GET
-// @Summary Get categories
-// @Description Get list of categories
-// @Endpoint /api/v1/pets/master/categories
+// @Summary Get all categories that system have
+// @tags Master Data
+// @Description Get all categories that system have
+// @Security ApiKeyAuth
+// @id GetCategories
+// @produce json
+// @Router /api/v1/pets/categories [get]
+// @Success 200 {object} models.MasterDataCategoryResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetCategories(c *gin.Context) {
 	categories, err := h.dbHandler.GetCategories(c)
 	if err != nil {
