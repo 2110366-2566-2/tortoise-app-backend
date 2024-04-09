@@ -12,6 +12,11 @@ import (
 // @version 1.0
 // @description PetPal API is a simple API for pet marketplaces.
 // @schemes https http
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+// @description Authorization by API key (Format: "Bearer <API_KEY>")
 func main() {
 	// Set the exit code to 0 by default
 	exitCode := 0

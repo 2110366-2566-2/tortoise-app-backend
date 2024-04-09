@@ -35,3 +35,44 @@ type DeletePetResponse struct {
 	Success     bool `json:"success" example:"true"`
 	DeleteCount int  `json:"delete_count" example:"1"`
 }
+
+type AllMasterDataResponse struct {
+	Success bool         `json:"success" example:"true"`
+	Count   int          `json:"count" example:"1"`
+	Data    []MasterData `json:"data"`
+}
+
+type MasterDataCategoryResponse struct {
+	Success bool `json:"success" example:"true"`
+	Count   int  `json:"count" example:"3"`
+	Data    struct {
+		Categories []string `json:"categories" example:"Dog,Cat,Bird"`
+	} `json:"data"`
+}
+
+type MasterDataResponse struct {
+	Success bool       `json:"success" example:"true"`
+	Data    MasterData `json:"data"`
+}
+
+type CreatePaymentBody struct {
+	Price    int    `json:"price" example:"100"`
+	SellerID string `json:"seller_id" example:"60163b3be1e8712c4e7f35ce"`
+	BuyerID  string `json:"buyer_id" example:"60163b3be1e8712c4e7f35cf"`
+	PetID    string `json:"pet_id" example:"60163b3be1e8712c4e7f35cf"`
+}
+
+type CreatePaymentResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    struct {
+		TransactionID string `json:"transaction_id" example:"60163b3be1e8712c4e7f35cf"`
+		PaymentID     string `json:"payment_id" example:"123456789"`
+	} `json:"data"`
+}
+
+type ConfirmPaymentResponse struct {
+	Success bool `json:"success" example:"true"`
+	Data    struct {
+		TransactionID string `json:"transaction_id" example:"60163b3be1e8712c4e7f35cf"`
+	} `json:"data"`
+}

@@ -35,10 +35,12 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 //		c.JSON(http.StatusOK, gin.H{"success": true, "count": len(*pets), "data": &pets})
 //	}
 //
+
 // GetPetBySellerID godoc
 // @Summary Get pets by sellerID
 // @tags Pets
 // @Description Get pets by sellerID
+// @Security ApiKeyAuth
 // @id GetPetBySeller
 // @produce json
 // @Param sellerID path string true "ID of the seller to perform the operation on"
@@ -66,6 +68,7 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 // @Summary Get single pet by petID
 // @tags Pets
 // @Description Get single pet by petID
+// @Security ApiKeyAuth
 // @id GetPetByPetID
 // @produce json
 // @Param petID path string true "ID of the pet to perform the operation on"
@@ -93,6 +96,7 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @tags Pets
 // @Description Get filtered pets by filter params
 // @id GetFilteredPets
+// @Security ApiKeyAuth
 // @produce json
 // @Router /api/v1/pets/ [get]
 // @Param category query string false "Category of pet"
@@ -194,6 +198,7 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 // @Description Creat a new pet
 // @Tags Pets
 // @Accept json
+// @Security ApiKeyAuth
 // @Param sellerID path string true "ID of the seller to perform the operation on"
 // @Param Pet body models.PetRequest true "Pet object that needs to be created"
 // @Router /api/v1/pets/seller/{sellerID} [post]
@@ -261,6 +266,7 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 // @Summary Update pet
 // @Description Update pet by pet ID
 // @Tags Pets
+// @Security ApiKeyAuth
 // @Accept json
 // @Produce json
 // @Param petID path string true "ID of the pet to perform the operation on"
@@ -313,6 +319,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // DeletePet godoc
 // @Summary Delete pet
 // @Description Delete pet by pet ID and delete pet from user's pets
+// @Security ApiKeyAuth
 // @Tags Pets
 // @Accept json
 // @Produce json
@@ -355,6 +362,16 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
+// GetMasterData godoc
+// @Summary Get all master data
+// @tags Master Data
+// @Description Get all master data
+// @Security ApiKeyAuth
+// @id GetMasterData
+// @produce json
+// @Router /api/v1/pets/master [get]
+// @Success 200 {object} models.AllMasterDataResponse
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetMasterData(c *gin.Context) {
 	masterData, err := h.dbHandler.GetAllMasterData(c)
 	if err != nil {
@@ -364,6 +381,17 @@ func (h *PetHandler) GetMasterData(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "count": len(*masterData), "data": masterData})
 }
 
+// GetMasterDataByCategory godoc
+// @Summary Get master data by category
+// @tags Master Data
+// @Description Get master data by category
+// @Security ApiKeyAuth
+// @id GetMasterDataByCategory
+// @produce json
+// @Param category path string true "Category of master data"
+// @Router /api/v1/pets/master/{category} [get]
+// @Success 200 {object} models.MasterDataResponse
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 	catagory := utils.SanitizeString(c.Param("category"))
 	masterData, err := h.dbHandler.GetMasterDataByCategory(c, catagory)
@@ -375,6 +403,16 @@ func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": masterData})
 }
 
+// GetCategories godoc
+// @Summary Get all categories that system have
+// @tags Master Data
+// @Description Get all categories that system have
+// @Security ApiKeyAuth
+// @id GetCategories
+// @produce json
+// @Router /api/v1/pets/categories [get]
+// @Success 200 {object} models.MasterDataCategoryResponse
+// @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetCategories(c *gin.Context) {
 	categories, err := h.dbHandler.GetCategories(c)
 	if err != nil {

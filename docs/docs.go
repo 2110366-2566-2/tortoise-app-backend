@@ -17,6 +17,11 @@ const docTemplate = `{
     "paths": {
         "/api/v1/pets/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get filtered pets by filter params",
                 "produces": [
                     "application/json"
@@ -110,8 +115,118 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/pets/categories": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all categories that system have",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Data"
+                ],
+                "summary": "Get all categories that system have",
+                "operationId": "GetCategories",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MasterDataCategoryResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pets/master": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all master data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Data"
+                ],
+                "summary": "Get all master data",
+                "operationId": "GetMasterData",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AllMasterDataResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/pets/master/{category}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get master data by category",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Master Data"
+                ],
+                "summary": "Get master data by category",
+                "operationId": "GetMasterDataByCategory",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Category of master data",
+                        "name": "category",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.MasterDataResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/pets/pet/{petID}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get single pet by petID",
                 "produces": [
                     "application/json"
@@ -146,6 +261,11 @@ const docTemplate = `{
                 }
             },
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Update pet by pet ID",
                 "consumes": [
                     "application/json"
@@ -197,6 +317,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete pet by pet ID and delete pet from user's pets",
                 "consumes": [
                     "application/json"
@@ -235,6 +360,11 @@ const docTemplate = `{
         },
         "/api/v1/pets/seller/{sellerID}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Get pets by sellerID",
                 "produces": [
                     "application/json"
@@ -269,6 +399,11 @@ const docTemplate = `{
                 }
             },
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Creat a new pet",
                 "consumes": [
                     "application/json"
@@ -316,9 +451,179 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/payment/confirm": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Confirm a payment for a transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Confirm a payment",
+                "parameters": [
+                    {
+                        "description": "Payment object",
+                        "name": "Payment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.PaymentIntent"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ConfirmPaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/payment/create": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new payment for a transaction",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create a new payment",
+                "parameters": [
+                    {
+                        "description": "Payment object",
+                        "name": "payment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePaymentBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "models.AllMasterDataResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MasterData"
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.ConfirmPaymentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "transaction_id": {
+                            "type": "string",
+                            "example": "60163b3be1e8712c4e7f35cf"
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.CreatePaymentBody": {
+            "type": "object",
+            "properties": {
+                "buyer_id": {
+                    "type": "string",
+                    "example": "60163b3be1e8712c4e7f35cf"
+                },
+                "pet_id": {
+                    "type": "string",
+                    "example": "60163b3be1e8712c4e7f35cf"
+                },
+                "price": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "seller_id": {
+                    "type": "string",
+                    "example": "60163b3be1e8712c4e7f35ce"
+                }
+            }
+        },
+        "models.CreatePaymentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "payment_id": {
+                            "type": "string",
+                            "example": "123456789"
+                        },
+                        "transaction_id": {
+                            "type": "string",
+                            "example": "60163b3be1e8712c4e7f35cf"
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.DeletePetResponse": {
             "type": "object",
             "properties": {
@@ -345,6 +650,73 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MasterData": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string",
+                    "example": "Dog"
+                },
+                "species": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Golden Retriever",
+                        "Poodle",
+                        "Bulldog",
+                        "Pug",
+                        "Chihuahua"
+                    ]
+                },
+                "species_count": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "models.MasterDataCategoryResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "categories": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "example": [
+                                "Dog",
+                                "Cat",
+                                "Bird"
+                            ]
+                        }
+                    }
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "models.MasterDataResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/models.MasterData"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "models.Medical_record": {
             "type": "object",
             "properties": {
@@ -359,6 +731,23 @@ const docTemplate = `{
                 "medical_id": {
                     "type": "string",
                     "example": "123456789"
+                }
+            }
+        },
+        "models.PaymentIntent": {
+            "type": "object",
+            "properties": {
+                "payment_id": {
+                    "type": "string",
+                    "example": "123456789"
+                },
+                "payment_method": {
+                    "type": "string",
+                    "example": "card"
+                },
+                "transaction_id": {
+                    "type": "string",
+                    "example": "60163b3be1e8712c4e7f35cf"
                 }
             }
         },
@@ -551,6 +940,14 @@ const docTemplate = `{
                     "example": true
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "description": "Authorization by API key (Format: \"Bearer \u003cAPI_KEY\u003e\")",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

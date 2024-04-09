@@ -20,9 +20,9 @@ type Transaction struct {
 }
 
 type PaymentIntent struct {
-	ID            string             `json:"payment_id" bson:"payment_id"`
-	TransactionID primitive.ObjectID `json:"transaction_id" bson:"transaction_id"`
-	PaymentMethod string             `json:"payment_method" bson:"payment_method"`
+	ID            string             `json:"payment_id" bson:"payment_id" example:"123456789"`
+	TransactionID primitive.ObjectID `json:"transaction_id" bson:"transaction_id" example:"60163b3be1e8712c4e7f35cf"`
+	PaymentMethod string             `json:"payment_method" bson:"payment_method" example:"card" enum:"card,promptpay"`
 }
 
 type TransactionWithDetails struct {
