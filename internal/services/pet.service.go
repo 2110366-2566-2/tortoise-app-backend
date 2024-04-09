@@ -46,6 +46,7 @@ func NewPetHandler(db *database.Handler, stg *storage.Handler) *PetHandler {
 // @Param sellerID path string true "ID of the seller to perform the operation on"
 // @Router /api/v1/pets/seller/{sellerID} [get]
 // @Success 200 {object} models.PetCardResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 	// prevent xss attack
@@ -74,6 +75,7 @@ func (h *PetHandler) GetPetBySeller(c *gin.Context) {
 // @Param petID path string true "ID of the pet to perform the operation on"
 // @Router /api/v1/pets/pet/{petID} [get]
 // @Success 200 {object} models.PetResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 	id := c.Param("petID")
@@ -111,6 +113,7 @@ func (h *PetHandler) GetPetByPetID(c *gin.Context) {
 // @Param maxPrice query int false "Maximum price of pet"
 // @Success 200 {object} models.PetCardResponse
 // @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 
@@ -204,6 +207,7 @@ func (h *PetHandler) GetFilteredPets(c *gin.Context) {
 // @Router /api/v1/pets/seller/{sellerID} [post]
 // @Success 200 {object} models.PetResponse "return created pet"
 // @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) CreatePet(c *gin.Context) {
 	var pet models.Pet
@@ -274,6 +278,7 @@ func (h *PetHandler) CreatePet(c *gin.Context) {
 // @Router /api/v1/pets/pet/{petID} [put]
 // @Success 200 {object} models.PetResponse "return updated pet"
 // @Failure 400 {object} models.ErrorResponse "bad request"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) UpdatePet(c *gin.Context) {
 	var data bson.M
@@ -326,6 +331,7 @@ func (h *PetHandler) UpdatePet(c *gin.Context) {
 // @Param petID path string true "ID of the pet to delete"
 // @Router /api/v1/pets/pet/{petID} [delete]
 // @Success 200 {object} models.DeletePetResponse "return deleted count"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) DeletePet(c *gin.Context) {
 	// get pet
@@ -371,6 +377,7 @@ func (h *PetHandler) DeletePet(c *gin.Context) {
 // @produce json
 // @Router /api/v1/pets/master [get]
 // @Success 200 {object} models.AllMasterDataResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetMasterData(c *gin.Context) {
 	masterData, err := h.dbHandler.GetAllMasterData(c)
@@ -391,6 +398,7 @@ func (h *PetHandler) GetMasterData(c *gin.Context) {
 // @Param category path string true "Category of master data"
 // @Router /api/v1/pets/master/{category} [get]
 // @Success 200 {object} models.MasterDataResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 	catagory := utils.SanitizeString(c.Param("category"))
@@ -412,6 +420,7 @@ func (h *PetHandler) GetMasterDataByCategory(c *gin.Context) {
 // @produce json
 // @Router /api/v1/pets/categories [get]
 // @Success 200 {object} models.MasterDataCategoryResponse
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
 // @Failure 500 {object} models.ErrorResponse "internal server error"
 func (h *PetHandler) GetCategories(c *gin.Context) {
 	categories, err := h.dbHandler.GetCategories(c)

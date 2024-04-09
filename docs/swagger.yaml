@@ -342,6 +342,10 @@ paths:
           description: bad request
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -362,6 +366,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.MasterDataCategoryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -382,6 +390,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.AllMasterDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -408,6 +420,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.MasterDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -435,6 +451,10 @@ paths:
           description: return deleted count
           schema:
             $ref: '#/definitions/models.DeletePetResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -460,6 +480,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.PetResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -496,6 +520,10 @@ paths:
           description: bad request
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -522,6 +550,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.PetCardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -556,6 +588,10 @@ paths:
           description: bad request
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: internal server error
           schema:
@@ -588,6 +624,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
       security:
       - ApiKeyAuth: []
       summary: Confirm a payment
@@ -614,6 +654,10 @@ paths:
             $ref: '#/definitions/models.CreatePaymentResponse'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.ErrorResponse'
       security:
