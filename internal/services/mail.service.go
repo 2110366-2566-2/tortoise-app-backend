@@ -84,7 +84,7 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 
 	from := "petpal.tortoise@gmail.com"
 	pass := "secl pvjq qpsv jynu"
-	body := "The OTP is " + otp
+	body := utils.GenerateHTMLTemplate(otp)
 	msg := "From: " + from + "\n" +
 		"To: " + to + "\n" +
 		"Subject: Rcovery Your Petpal Password\n\n" +
