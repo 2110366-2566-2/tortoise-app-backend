@@ -63,7 +63,7 @@ func Run(env configs.EnvVars) (func(), error) {
 
 			done := make(chan struct{})
 			go func() {
-				log.Println("Timeout of 5 seconds.")
+				log.Println("Timeout of", waitTime, "second(s).")
 				<-ctx.Done()
 				done <- struct{}{}
 			}()
