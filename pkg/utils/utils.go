@@ -240,7 +240,7 @@ func GenerateHTMLTemplate(otp string) string {
 	<p class="warntxt">
 		If you didn't request this, you can safely ignore this email.
 	</p>
-	<p>Best regards,<br />Massage Reserve Service Company</p>
+	<p>Best regards,<br />PetPal User Support Team</p>
 </div>
 `
 	return html
