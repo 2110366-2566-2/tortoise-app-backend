@@ -83,12 +83,13 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	hashOtp := utils.HashPassword(otp)
 
 	from := "petpal.tortoise@gmail.com"
-	pass := "secl pvjq qpsv jynu"
-	body := "The OTP is " + otp
-	msg := "From: " + from + "\n" +
+	pass := "ruik nfvk adgj ncyu"
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	body := "<html>" + utils.GenerateHTMLTemplate(otp) + "</html>"
+	text := "From: " + from + "\n" +
 		"To: " + to + "\n" +
-		"Subject: Rcovery Your Petpal Password\n\n" +
-		body
+		"Subject: Recovery Your Petpal Password\n"
+	msg := []byte(text + mime + body)
 
 	err = smtp.SendMail("smtp.gmail.com:587", smtp.PlainAuth("", from, pass, "smtp.gmail.com"), from, []string{to}, []byte(msg))
 
