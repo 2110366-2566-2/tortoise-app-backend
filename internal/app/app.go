@@ -48,10 +48,10 @@ func Run(env configs.EnvVars) (func(), error) {
 			log.Println("Shutdown Server ...")
 
 			var waitTime int
-			if env.SKIP_WAIT == "false" {
-				waitTime = 5
-			} else {
+			if env.SKIP_WAIT == "true" {
 				waitTime = 0
+			} else {
+				waitTime = 5
 			}
 
 			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(waitTime)*time.Second)
