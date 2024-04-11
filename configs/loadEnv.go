@@ -15,6 +15,7 @@ type EnvVars struct {
 	STRIPE_KEY      string `mapstructure:"STRIPE_KEY"`
 	GIN_MODE        string `mapstructure:"GIN_MODE"`
 	FIREBASE_CONFIG string `mapstructure:"FIREBASE_CONFIG"`
+	SKIP_WAIT       string `mapstructure:"SKIP_WAIT"`
 }
 
 func LoadConfig() (config EnvVars, err error) {
@@ -32,6 +33,7 @@ func LoadConfig() (config EnvVars, err error) {
 		STRIPE_KEY:      os.Getenv("STRIPE_KEY"),
 		GIN_MODE:        os.Getenv("GIN_MODE"),
 		FIREBASE_CONFIG: os.Getenv("FIREBASE_CONFIG"),
+		SKIP_WAIT:       os.Getenv("SKIP_WAIT"),
 	}
 
 	return config, nil

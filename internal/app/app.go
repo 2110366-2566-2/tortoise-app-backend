@@ -47,8 +47,14 @@ func Run(env configs.EnvVars) (func(), error) {
 			fmt.Println()
 			log.Println("Shutdown Server ...")
 
-			// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			ctx, cancel := context.WithTimeout(context.Background(), 0*time.Second)
+			var waitTime int
+			if env.SKIP_WAIT == "false" {
+				waitTime = 5
+			} else {
+				waitTime = 0
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(waitTime)*time.Second)
 			defer cancel()
 
 			if err := srv.Shutdown(ctx); err != nil {
