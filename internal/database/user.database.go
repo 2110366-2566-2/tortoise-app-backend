@@ -68,8 +68,11 @@ func CreateUser(ctx context.Context, h *Handler, user models.User) error {
 		}
 	} else if user.Role == 2 {
 		// Insert the buyer to the database
-		user.ID = id
-		_, err = h.db.Collection("buyers").InsertOne(ctx, user)
+		var buyer models.Buyer
+		buyer.ID = id
+		buyer.FirstName = user.FirstName
+		buyer.LastName = user.LastName
+		_, err = h.db.Collection("buyers").InsertOne(ctx, buyer)
 		if err != nil {
 			return err
 		}
