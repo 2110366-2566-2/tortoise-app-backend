@@ -37,14 +37,17 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	}
 
 	from := "petpal.tortoise@gmail.com"
-	pass := "secl pvjq qpsv jynu"
 	to := user.Email
-	body := "Your Username is " + user.Username
-
-	msg := "From: " + from + "\n" +
+	pass := "ruik nfvk adgj ncyu"
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	p1 := "You have requested to <em class=\"special\">recover the username</em> of your PetPal account."
+	p2 := "Please find your <em>username</em> below:"
+	p3 := "Username"
+	body := "<html>" + utils.GenerateHTMLTemplate(user.Username, p1, p2, p3) + "</html>"
+	text := "From: " + from + "\n" +
 		"To: " + to + "\n" +
-		"Subject: Rcovery Your Petpal Username\n\n" +
-		body
+		"Subject: Recovery Your Petpal Password\n"
+	msg := []byte(text + mime + body)
 
 	err = smtp.SendMail("smtp.gmail.com:587", smtp.PlainAuth("", from, pass, "smtp.gmail.com"), from, []string{to}, []byte(msg))
 
@@ -85,7 +88,10 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	from := "petpal.tortoise@gmail.com"
 	pass := "ruik nfvk adgj ncyu"
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body := "<html>" + utils.GenerateHTMLTemplate(otp) + "</html>"
+	p1 := "You have requested to <em class=\"special\">recover</em> your PetPal account."
+	p2 := "Please find your <em>One Time Password (OTP)</em> below:"
+	p3 := "OTP"
+	body := "<html>" + utils.GenerateHTMLTemplate(otp, p1, p2, p3) + "</html>"
 	text := "From: " + from + "\n" +
 		"To: " + to + "\n" +
 		"Subject: Recovery Your Petpal Password\n"

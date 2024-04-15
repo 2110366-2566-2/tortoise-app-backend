@@ -91,7 +91,7 @@ func ValidateBase64Image(base64Image string) (*[]string, error) {
 
 }
 
-func GenerateHTMLTemplate(otp string) string {
+func GenerateHTMLTemplate(code, p1, p2, p3 string) string {
 	html := `<style>
 	body {
 		font-family: Arial, sans-serif;
@@ -139,14 +139,11 @@ func GenerateHTMLTemplate(otp string) string {
 </style>
 <div class="container">
 	<p class="hello">Hello,</p>
-	<p>
-		You have requested to <em class="special">recover</em> your PetPal account
-		password.
-	</p>
-	<p>Please find your <em>One Time Password (OTP)</em> below:</p>
+	<p>` + p1 + `</p>
+	<p>` + p2 + `</p>
 	<p class="OTPtext">
-		<strong>OTP:</strong>
-		<span class="OTP"> ` + otp + `</span>
+		<strong>` + p3 + `: </strong>
+		<span class="OTP"> ` + code + `</span>
 	</p>
 	<p class="warntxt">
 		If you didn't request this, you can safely ignore this email.
