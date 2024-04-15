@@ -12,7 +12,7 @@ type User struct {
 	FirstName   string             `json:"first_name" bson:"first_name"`
 	LastName    string             `json:"last_name" bson:"last_name"`
 	Gender      string             `json:"gender"`
-	PhoneNumber string             `json:"phone_number" bson:"phone_number"`
+	PhoneNumber string             `json:"phoneNumber" bson:"phoneNumber"`
 	Image       string             `json:"image"`
 	Role        int32              `json:"role" binding:"required"`
 	Address     struct {
