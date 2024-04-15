@@ -6,7 +6,6 @@ import (
 
 	"github.com/2110366-2566-2/tortoise-app-backend/configs"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
-	"github.com/2110366-2566-2/tortoise-app-backend/internal/services"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/gin-gonic/gin"
 )
@@ -65,11 +64,6 @@ func SetupRoutes(r *gin.Engine, dbH *database.Handler, stgH *storage.Handler, en
 		username, _ := c.Get("username")
 		role, _ := c.Get("role")
 		c.JSON(http.StatusOK, gin.H{"userID": userID, "username": username, "role": role})
-	})
-
-	// validate password
-	apiV1.POST("/valpasswd", roleMiddleware("seller", "admin", "buyer"), func(c *gin.Context) {
-		services.CheckPassword(c, services.NewUserHandler(dbH, stgH))
 	})
 
 	petsGroup := apiV1.Group("/pets")

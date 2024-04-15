@@ -243,7 +243,7 @@ func (h *UserHandler) WhoAmI(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": user})
 }
 
-func CheckPassword(c *gin.Context, h *UserHandler) {
+func (h *UserHandler) ValidatePassword(c *gin.Context) {
 
 	var data models.Password
 	c.BindJSON(&data)
