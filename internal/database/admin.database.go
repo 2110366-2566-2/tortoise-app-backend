@@ -6,6 +6,7 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -48,6 +49,20 @@ func CreateAdmin(ctx context.Context, h *Handler, admin models.Admin) error {
 	}
 
 	return nil
+}
+
+// GetAdminByUserID is a function to get an Admin by userID
+func GetAdminByUserID(ctx context.Context, h *Handler, userID primitive.ObjectID) (*models.Admin, error) {
+	var admin models.Admin
+
+	filter := bson.M{"_id": userID}
+
+	err := h.db.Collection("admins").FindOne(ctx, filter).Decode(&admin)
+	if err != nil {
+		return nil, err
+	}
+
+	return &admin, nil
 }
 
 // GetAdminByUsername is a function to get an Admin by username

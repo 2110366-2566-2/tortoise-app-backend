@@ -25,3 +25,8 @@ type User struct {
 		HouseNumber string `json:"houseNumber"`
 	} `json:"address"`
 }
+
+// Password model
+type Password struct {
+	Password string `json:"password" binding:"required"`
+}

@@ -242,3 +242,62 @@ func (h *UserHandler) WhoAmI(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": user})
 }
+
+func CheckPassword(c *gin.Context, h *UserHandler) {
+
+	var data models.Password
+	c.BindJSON(&data)
+
+	// Prevent XSS attack
+	password := utils.SanitizeString(data.Password)
+
+	// log.Println("Password:", password)
+
+	if len(password) <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "incorrect password format"})
+		return
+	}
+
+	userID, exist1 := c.Get("userID")
+	role, exist2 := c.Get("role")
+	if !exist1 || !exist2 {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+
+	var hashedPassword string
+
+	// log.Println("Role:", role)
+
+	// convert primitive.ObjectID to string
+	if role == "admin" {
+		// get admin by user id
+		admin, err := database.GetAdminByUserID(c, h.dbHandler, userID.(primitive.ObjectID))
+		if err != nil {
+			log.Println("Error: ", err)
+			errorMsg := "failed to validate password"
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+			return
+		}
+		hashedPassword = admin.Password
+	} else {
+		userID = userID.(primitive.ObjectID).Hex()
+		// get user by user id
+		user, err := h.dbHandler.GetUserByUserID(c, userID.(string))
+		if err != nil {
+			log.Println("Error: ", err)
+			errorMsg := "failed to validate password"
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+			return
+		}
+		hashedPassword = user.Password
+	}
+	// validate password
+	if !utils.ComparePassword(hashedPassword, password) {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "password is incorrect"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "password is correct"})
+
+}
