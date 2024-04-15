@@ -75,6 +75,9 @@ func PetSanitize(pet *models.Pet) {
 
 func BsonSanitize(data *bson.M) {
 	for key, value := range *data {
+		if key == "_id" || key == "password" || key == "image" {
+			continue
+		}
 		switch value := value.(type) {
 		case string:
 			// (*data)[key] = p.Sanitize(value)
@@ -108,6 +111,11 @@ func UserSaniatize(user *models.User) {
 	user.Address.Building = UnescapeString(building)
 	houseNO := p.Sanitize(user.Address.HouseNumber)
 	user.Address.HouseNumber = UnescapeString(houseNO)
+
+	if user.License != "" {
+		license := p.Sanitize(user.License)
+		user.License = UnescapeString(license)
+	}
 }
 
 func UnescapeString(data string) string {

@@ -80,5 +80,7 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		return
 	}
 
+	user.License = ""
+
 	c.JSON(200, gin.H{"success": true, "message": "User created successfully", "user": &user, "token": tokenString})
 }

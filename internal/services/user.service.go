@@ -106,10 +106,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// log data
+	log.Println("Length of data: ", len(data))
+	for k, v := range data {
+		log.Println("Key: ", k, "Value: ", v)
+	}
+
 	utils.BsonSanitize(&data)
 
 	// check if have media to upload
 	if image, ok := data["image"]; ok {
+		log.Println("Found image in body")
 		url, err := h.stgHandler.AddImage(c, c.Param("userID"), "users", image.(string))
 		if err != nil {
 			if err.Error() == "invalid base64 image string" {

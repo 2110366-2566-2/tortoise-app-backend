@@ -15,6 +15,7 @@ type User struct {
 	PhoneNumber string             `json:"phoneNumber" bson:"phoneNumber"`
 	Image       string             `json:"image"`
 	Role        int32              `json:"role" binding:"required"`
+	License     string             `json:"license,omitempty" bson:"license,omitempty"`
 	Address     struct {
 		Province    string `json:"province"`
 		District    string `json:"district"`

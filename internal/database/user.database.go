@@ -46,12 +46,6 @@ func CheckEmailExist(ctx context.Context, h *Handler, user models.User) (bool, e
 
 // CreateUser is a function to create a new user
 func CreateUser(ctx context.Context, h *Handler, user models.User) error {
-	// Insert the user to the database
-	_, err := h.db.Collection("users").InsertOne(ctx, user)
-	if err != nil {
-		return err
-	}
-
 	id := user.ID
 
 	if user.Role == 1 {
@@ -62,7 +56,9 @@ func CreateUser(ctx context.Context, h *Handler, user models.User) error {
 		seller.LastName = user.LastName
 		seller.Pets = []primitive.ObjectID{}
 		seller.Status = "unverified"
-		_, err = h.db.Collection("sellers").InsertOne(ctx, seller)
+		seller.License = user.License
+		user.License = ""
+		_, err := h.db.Collection("sellers").InsertOne(ctx, seller)
 		if err != nil {
 			return err
 		}
@@ -72,10 +68,16 @@ func CreateUser(ctx context.Context, h *Handler, user models.User) error {
 		buyer.ID = id
 		buyer.FirstName = user.FirstName
 		buyer.LastName = user.LastName
-		_, err = h.db.Collection("buyers").InsertOne(ctx, buyer)
+		_, err := h.db.Collection("buyers").InsertOne(ctx, buyer)
 		if err != nil {
 			return err
 		}
+	}
+
+	// Insert the user to the database
+	_, err := h.db.Collection("users").InsertOne(ctx, user)
+	if err != nil {
+		return err
 	}
 
 	return nil
