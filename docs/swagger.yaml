@@ -1,0 +1,677 @@
+definitions:
+  models.AllMasterDataResponse:
+    properties:
+      count:
+        example: 1
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/models.MasterData'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.ConfirmPaymentResponse:
+    properties:
+      data:
+        properties:
+          transaction_id:
+            example: 60163b3be1e8712c4e7f35cf
+            type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.CreatePaymentBody:
+    properties:
+      buyer_id:
+        example: 60163b3be1e8712c4e7f35cf
+        type: string
+      pet_id:
+        example: 60163b3be1e8712c4e7f35cf
+        type: string
+      price:
+        example: 100
+        type: integer
+      seller_id:
+        example: 60163b3be1e8712c4e7f35ce
+        type: string
+    type: object
+  models.CreatePaymentResponse:
+    properties:
+      data:
+        properties:
+          payment_id:
+            example: "123456789"
+            type: string
+          transaction_id:
+            example: 60163b3be1e8712c4e7f35cf
+            type: string
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.DeletePetResponse:
+    properties:
+      delete_count:
+        example: 1
+        type: integer
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        example: some error message
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  models.MasterData:
+    properties:
+      category:
+        example: Dog
+        type: string
+      species:
+        example:
+        - Golden Retriever
+        - Poodle
+        - Bulldog
+        - Pug
+        - Chihuahua
+        items:
+          type: string
+        type: array
+      species_count:
+        example: 5
+        type: integer
+    type: object
+  models.MasterDataCategoryResponse:
+    properties:
+      count:
+        example: 3
+        type: integer
+      data:
+        properties:
+          categories:
+            example:
+            - Dog
+            - Cat
+            - Bird
+            items:
+              type: string
+            type: array
+        type: object
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.MasterDataResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.MasterData'
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.Medical_record:
+    properties:
+      description:
+        example: Routine checkup
+        type: string
+      medical_date:
+        example: "2024-04-08"
+        type: string
+      medical_id:
+        example: "123456789"
+        type: string
+    type: object
+  models.PaymentIntent:
+    properties:
+      payment_id:
+        example: "123456789"
+        type: string
+      payment_method:
+        example: card
+        type: string
+      transaction_id:
+        example: 60163b3be1e8712c4e7f35cf
+        type: string
+    type: object
+  models.Pet:
+    properties:
+      age:
+        example: 3
+        type: integer
+      behavior:
+        example: Friendly
+        type: string
+      category:
+        example: Dog
+        type: string
+      description:
+        example: A friendly and playful dog
+        type: string
+      id:
+        example: 60163b3be1e8712c4e7f35cf
+        type: string
+      is_sold:
+        example: false
+        type: boolean
+      media:
+        example: https://example.com/fluffy.jpg
+        type: string
+      medical_records:
+        items:
+          $ref: '#/definitions/models.Medical_record'
+        type: array
+      name:
+        example: Fluffy
+        type: string
+      price:
+        example: 500
+        type: integer
+      seller_id:
+        example: 60163b3be1e8712c4e7f35ce
+        type: string
+      sex:
+        example: male
+        type: string
+      species:
+        example: Golden Retriever
+        type: string
+      weight:
+        example: 25.5
+        type: number
+    type: object
+  models.PetCard:
+    properties:
+      category:
+        example: Dog
+        type: string
+      id:
+        example: 60163b3be1e8712c4e7f35cf
+        type: string
+      media:
+        example: https://example.com/fluffy.jpg
+        type: string
+      name:
+        example: Fluffy
+        type: string
+      price:
+        example: 100
+        type: integer
+      seller_id:
+        example: 60163b3be1e8712c4e7f35ce
+        type: string
+      seller_name:
+        example: John
+        type: string
+      seller_surname:
+        example: Doe
+        type: string
+      species:
+        example: Golden Retriever
+        type: string
+    type: object
+  models.PetCardResponse:
+    properties:
+      count:
+        example: 1
+        type: integer
+      data:
+        items:
+          $ref: '#/definitions/models.PetCard'
+        type: array
+      success:
+        example: true
+        type: boolean
+    type: object
+  models.PetRequest:
+    properties:
+      age:
+        example: 3
+        type: integer
+      behavior:
+        example: Friendly
+        type: string
+      category:
+        example: Dog
+        type: string
+      description:
+        example: A friendly and playful dog
+        type: string
+      is_sold:
+        example: false
+        type: boolean
+      media:
+        example: https://example.com/fluffy.jpg
+        type: string
+      medical_records:
+        items:
+          $ref: '#/definitions/models.Medical_record'
+        type: array
+      name:
+        example: Fluffy
+        type: string
+      price:
+        example: 500
+        type: integer
+      sex:
+        example: male
+        type: string
+      species:
+        example: Golden Retriever
+        type: string
+      weight:
+        example: 25.5
+        type: number
+    type: object
+  models.PetResponse:
+    properties:
+      data:
+        $ref: '#/definitions/models.Pet'
+      success:
+        example: true
+        type: boolean
+    type: object
+info:
+  contact: {}
+  description: PetPal API is a simple API for pet marketplaces.
+  title: PetPal API
+  version: "1.0"
+paths:
+  /api/v1/pets/:
+    get:
+      description: Get filtered pets by filter params
+      operationId: GetFilteredPets
+      parameters:
+      - description: Category of pet
+        in: query
+        name: category
+        type: string
+      - description: Species of pet
+        in: query
+        name: species
+        type: string
+      - description: Sex of pet
+        in: query
+        name: sex
+        type: string
+      - description: Behavior of pet
+        in: query
+        name: behavior
+        type: string
+      - description: Minimum age of pet
+        in: query
+        name: minAge
+        type: integer
+      - description: Maximum age of pet
+        in: query
+        name: maxAge
+        type: integer
+      - description: Minimum weight of pet
+        in: query
+        name: minWeight
+        type: integer
+      - description: Maximum weight of pet
+        in: query
+        name: maxWeight
+        type: integer
+      - description: Minimum price of pet
+        in: query
+        name: minPrice
+        type: integer
+      - description: Maximum price of pet
+        in: query
+        name: maxPrice
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PetCardResponse'
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get filtered pets
+      tags:
+      - Pets
+  /api/v1/pets/categories:
+    get:
+      description: Get all categories that system have
+      operationId: GetCategories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MasterDataCategoryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all categories that system have
+      tags:
+      - Master Data
+  /api/v1/pets/master:
+    get:
+      description: Get all master data
+      operationId: GetMasterData
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AllMasterDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get all master data
+      tags:
+      - Master Data
+  /api/v1/pets/master/{category}:
+    get:
+      description: Get master data by category
+      operationId: GetMasterDataByCategory
+      parameters:
+      - description: Category of master data
+        in: path
+        name: category
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.MasterDataResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get master data by category
+      tags:
+      - Master Data
+  /api/v1/pets/pet/{petID}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete pet by pet ID and delete pet from user's pets
+      parameters:
+      - description: ID of the pet to delete
+        in: path
+        name: petID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: return deleted count
+          schema:
+            $ref: '#/definitions/models.DeletePetResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete pet
+      tags:
+      - Pets
+    get:
+      description: Get single pet by petID
+      operationId: GetPetByPetID
+      parameters:
+      - description: ID of the pet to perform the operation on
+        in: path
+        name: petID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PetResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get single pet by petID
+      tags:
+      - Pets
+    put:
+      consumes:
+      - application/json
+      description: Update pet by pet ID
+      parameters:
+      - description: ID of the pet to perform the operation on
+        in: path
+        name: petID
+        required: true
+        type: string
+      - description: Pet object that needs to be updated
+        in: body
+        name: Pet
+        required: true
+        schema:
+          $ref: '#/definitions/models.PetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: return updated pet
+          schema:
+            $ref: '#/definitions/models.PetResponse'
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Update pet
+      tags:
+      - Pets
+  /api/v1/pets/seller/{sellerID}:
+    get:
+      description: Get pets by sellerID
+      operationId: GetPetBySeller
+      parameters:
+      - description: ID of the seller to perform the operation on
+        in: path
+        name: sellerID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PetCardResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get pets by sellerID
+      tags:
+      - Pets
+    post:
+      consumes:
+      - application/json
+      description: Creat a new pet
+      parameters:
+      - description: ID of the seller to perform the operation on
+        in: path
+        name: sellerID
+        required: true
+        type: string
+      - description: Pet object that needs to be created
+        in: body
+        name: Pet
+        required: true
+        schema:
+          $ref: '#/definitions/models.PetRequest'
+      responses:
+        "200":
+          description: return created pet
+          schema:
+            $ref: '#/definitions/models.PetResponse'
+        "400":
+          description: bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new pet
+      tags:
+      - Pets
+  /payment/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Confirm a payment for a transaction
+      parameters:
+      - description: Payment object
+        in: body
+        name: Payment
+        required: true
+        schema:
+          $ref: '#/definitions/models.PaymentIntent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ConfirmPaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Confirm a payment
+      tags:
+      - Payments
+  /payment/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new payment for a transaction
+      parameters:
+      - description: Payment object
+        in: body
+        name: payment
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePaymentBody'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CreatePaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new payment
+      tags:
+      - Payments
+schemes:
+- https
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    description: 'Authorization by API key (Format: "Bearer <API_KEY>")'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

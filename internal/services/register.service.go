@@ -20,6 +20,9 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		return
 	}
 
+	// Sanitize the user input
+	utils.UserSaniatize(&user)
+
 	// Validate the user model
 	uservalidate := validator.New()
 	if err := uservalidate.Struct(user); err != nil {
@@ -84,6 +87,8 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		c.JSON(500, gin.H{"error": "failed to generate token", "success": false})
 		return
 	}
+
+	user.License = ""
 
 	c.JSON(200, gin.H{"success": true, "message": "User created successfully", "user": &user, "token": tokenString})
 }

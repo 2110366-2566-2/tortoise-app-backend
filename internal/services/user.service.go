@@ -26,11 +26,6 @@ func NewUserHandler(db *database.Handler, stg *storage.Handler) *UserHandler {
 	}
 }
 
-// GetUserByUserID godoc
-// @Method GET
-// @Summary Get user by user id
-// @Description Get user by user id
-// @Endpoint /api/v1/user/:userID
 func (h *UserHandler) GetUserByUserID(c *gin.Context) {
 	id := c.Param("userID")
 	user, err := h.dbHandler.GetUserByUserID(c, id)
@@ -46,11 +41,6 @@ func (h *UserHandler) GetUserByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": &user})
 }
 
-// UpdatePasswd godoc
-// @Method PUT
-// @Summary Update user's password
-// @Description Update user's password by user id
-// @Endpoint /api/v1/user/passwd/:userID
 func (h *UserHandler) UpdateUserPasswd(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -107,11 +97,6 @@ func (h *UserHandler) UpdateUserPasswd(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
 }
 
-// UpdateUser godoc
-// @Method PUT
-// @Summary Update user's profile
-// @Description Update user's profile
-// @Endpoint /api/v1/user/:userID
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
@@ -129,7 +114,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
     	return
 	}
 
-	if len(data["first_name"].(string))<4 || len(data["last_name"].(string))<4 || (data["gender"] != "Male" && data["gender"]!= "Female") || len(phoneNumber)!=10 {
+	if len(data["first_name"].(string))<1 || len(data["last_name"].(string))<1 || (data["gender"] != "Male" && data["gender"]!= "Female") || len(phoneNumber)!=10 {
 		c.JSON(400, gin.H{"success": false, "error": "invalid field"})
 		return
 	}
@@ -140,8 +125,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// log data
+	log.Println("Length of data: ", len(data))
+	for k, v := range data {
+		log.Println("Key: ", k, "Value: ", v)
+	}
+
+	utils.BsonSanitize(&data)
+
 	// check if have media to upload
 	if image, ok := data["image"]; ok {
+		log.Println("Found image in body")
 		url, err := h.stgHandler.AddImage(c, c.Param("userID"), "users", image.(string))
 		if err != nil {
 			if err.Error() == "invalid base64 image string" {
@@ -174,13 +168,9 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
 }
 
-// DeleteUser godoc
-// @Method DELETE
-// @Summary Delete user
-// @Description Delete user that appears in all schema and delete pet if user is a seller
-// @Endpoint /api/v1/user/:userID
 func (h *UserHandler) DeleteUser(c *gin.Context) {
-	user, err := h.dbHandler.GetUserByUserID(c, c.Param("userID"))
+	userID := utils.SanitizeString(c.Param("userID"))
+	user, err := h.dbHandler.GetUserByUserID(c, userID)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "user not found"})
@@ -188,7 +178,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 
 	// delete user
-	res, err := h.dbHandler.DeleteOneUser(c, c.Param("userID"), h.stgHandler)
+	res, err := h.dbHandler.DeleteOneUser(c, userID, h.stgHandler)
 	if err != nil {
 		log.Println("Error: ", err)
 		errorMsg := "failed to delete user"
@@ -202,7 +192,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	// if user have image, delete it
 	if len(user.Image) > 0 {
 		// delete media
-		if err := h.stgHandler.DeleteImage(c, c.Param("userID"), "users"); err != nil {
+		if err := h.stgHandler.DeleteImage(c, userID, "users"); err != nil {
 			log.Println("Error: ", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to delete media"})
 			return
@@ -212,11 +202,6 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "deletedCount": res.DeletedCount})
 }
 
-// UpdateForgotPassword godoc
-// @Method PUT
-// @Summary Update user's password by email
-// @Description Update user's password by email
-// @Endpoint /api/v1/user/forgotpasswd
 func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 	var reset models.ResetPassword
 	if err := c.BindJSON(&reset); err != nil {
@@ -262,11 +247,6 @@ func (h *UserHandler) UpdateForgotPassword(c *gin.Context) {
 
 }
 
-// WhoAmI godoc
-// @Method GET
-// @Summary Get my profile
-// @Description Get my profile
-// @Endpoint /api/v1/user/me
 func (h *UserHandler) WhoAmI(c *gin.Context) {
 	userID, exist := c.Get("userID")
 	if !exist {
@@ -289,4 +269,63 @@ func (h *UserHandler) WhoAmI(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": user})
+}
+
+func (h *UserHandler) ValidatePassword(c *gin.Context) {
+
+	var data models.Password
+	c.BindJSON(&data)
+
+	// Prevent XSS attack
+	password := utils.SanitizeString(data.Password)
+
+	// log.Println("Password:", password)
+
+	if len(password) <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "incorrect password format"})
+		return
+	}
+
+	userID, exist1 := c.Get("userID")
+	role, exist2 := c.Get("role")
+	if !exist1 || !exist2 {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Unauthorized"})
+		return
+	}
+
+	var hashedPassword string
+
+	// log.Println("Role:", role)
+
+	// convert primitive.ObjectID to string
+	if role == "admin" {
+		// get admin by user id
+		admin, err := database.GetAdminByUserID(c, h.dbHandler, userID.(primitive.ObjectID))
+		if err != nil {
+			log.Println("Error: ", err)
+			errorMsg := "failed to validate password"
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+			return
+		}
+		hashedPassword = admin.Password
+	} else {
+		userID = userID.(primitive.ObjectID).Hex()
+		// get user by user id
+		user, err := h.dbHandler.GetUserByUserID(c, userID.(string))
+		if err != nil {
+			log.Println("Error: ", err)
+			errorMsg := "failed to validate password"
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": errorMsg})
+			return
+		}
+		hashedPassword = user.Password
+	}
+	// validate password
+	if !utils.ComparePassword(hashedPassword, password) {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "password is incorrect"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "password is correct"})
+
 }

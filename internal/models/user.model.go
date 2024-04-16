@@ -15,9 +15,10 @@ type User struct {
 	FirstName   string             `json:"first_name" bson:"first_name"`
 	LastName    string             `json:"last_name" bson:"last_name"`
 	Gender      string             `json:"gender"`
-	PhoneNumber string             `json:"phone_number" bson:"phone_number"`
+	PhoneNumber string             `json:"phoneNumber" bson:"phoneNumber"`
 	Image       string             `json:"image"`
 	Role        int32              `json:"role" binding:"required" validate:"required,eq=1|eq=2"`
+	License     string             `json:"license,omitempty" bson:"license,omitempty"`
 	Address     struct {
 		Province    string `json:"province"`
 		District    string `json:"district"`
@@ -28,5 +29,7 @@ type User struct {
 		HouseNumber string `json:"houseNumber"`
 	} `json:"address"`
 }
-
-
+// Password model
+type Password struct {
+	Password string `json:"password" binding:"required"`
+}

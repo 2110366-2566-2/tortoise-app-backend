@@ -21,6 +21,9 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
+	// Sanitize data
+	utils.BsonSanitize(&data)
+
 	user, err := h.dbHandler.GetUserByMail(c, data)
 
 	if err != nil {
@@ -34,14 +37,17 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	}
 
 	from := "petpal.tortoise@gmail.com"
-	pass := "secl pvjq qpsv jynu"
 	to := user.Email
-	body := "Your Username is " + user.Username
-
-	msg := "From: " + from + "\n" +
+	pass := "ruik nfvk adgj ncyu"
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	p1 := "You have requested to <em class=\"special\">recover the username</em> of your PetPal account."
+	p2 := "Please find your <em>username</em> below:"
+	p3 := "Username"
+	body := "<html>" + utils.GenerateHTMLTemplate(user.Username, p1, p2, p3) + "</html>"
+	text := "From: " + from + "\n" +
 		"To: " + to + "\n" +
-		"Subject: Rcovery Your Petpal Username\n\n" +
-		body
+		"Subject: Recovery Your Petpal Password\n"
+	msg := []byte(text + mime + body)
 
 	err = smtp.SendMail("smtp.gmail.com:587", smtp.PlainAuth("", from, pass, "smtp.gmail.com"), from, []string{to}, []byte(msg))
 
@@ -53,14 +59,12 @@ func (h *UserHandler) RecoveryUsername(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": "send successfully"})
 }
 
-// SentOTP godoc
-// @Method POST
-// @Summary Sent OTP
-// @Description Sent OTP to user's email
-// @Endpoint /api/v1/user/sent-otp
 func (h *UserHandler) SentOTP(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	// Sanitize data
+	utils.BsonSanitize(&data)
 
 	// Check is email exist
 	user, err := h.dbHandler.GetUserByMail(c, data)
@@ -82,12 +86,16 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	hashOtp := utils.HashPassword(otp)
 
 	from := "petpal.tortoise@gmail.com"
-	pass := "secl pvjq qpsv jynu"
-	body := "The OTP is " + otp
-	msg := "From: " + from + "\n" +
+	pass := "ruik nfvk adgj ncyu"
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	p1 := "You have requested to <em class=\"special\">recover</em> your PetPal account."
+	p2 := "Please find your <em>One Time Password (OTP)</em> below:"
+	p3 := "OTP"
+	body := "<html>" + utils.GenerateHTMLTemplate(otp, p1, p2, p3) + "</html>"
+	text := "From: " + from + "\n" +
 		"To: " + to + "\n" +
-		"Subject: Rcovery Your Petpal Password\n\n" +
-		body
+		"Subject: Recovery Your Petpal Password\n"
+	msg := []byte(text + mime + body)
 
 	err = smtp.SendMail("smtp.gmail.com:587", smtp.PlainAuth("", from, pass, "smtp.gmail.com"), from, []string{to}, []byte(msg))
 
@@ -113,11 +121,6 @@ func (h *UserHandler) SentOTP(c *gin.Context) {
 	c.JSON(200, gin.H{"success": true, "data": "send OTP successfully"})
 }
 
-// ValidateOTP godoc
-// @Method POST
-// @Summary Validate OTP
-// @Description Validate OTP
-// @Endpoint /api/v1/user/checkotp
 func (h *UserHandler) ValidateOTP(c *gin.Context) {
 	var res models.OTPResponse
 	err := c.BindJSON(&res)
@@ -125,6 +128,9 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "failed to bind data"})
 		return
 	}
+
+	res.Email = utils.SanitizeString(res.Email)
+	res.OTP = utils.SanitizeString(res.OTP)
 
 	// Check is email exist
 	user, err := h.dbHandler.GetUserByMail(c, bson.M{"email": res.Email})
@@ -189,6 +195,8 @@ func (h *UserHandler) ValidateOTP(c *gin.Context) {
 func (h *UserHandler) CheckMail(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
+
+	utils.BsonSanitize(&data)
 
 	user, err := h.dbHandler.GetUserByMail(c, data)
 

@@ -90,3 +90,66 @@ func ValidateBase64Image(base64Image string) (*[]string, error) {
 	return &splitString, nil
 
 }
+
+func GenerateHTMLTemplate(code, p1, p2, p3 string) string {
+	html := `<style>
+	body {
+		font-family: Arial, sans-serif;
+		color: #333;
+		font-size: 14px;
+	}
+	.container {
+		max-width: 600px;
+		margin: 0 auto;
+		padding: 20px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		background-color: #f9f9f9;
+	}
+	p {
+		margin-bottom: 15px;
+	}
+	strong {
+		color: #0066ff;
+	}
+	.OTP {
+		color: #413a38;
+		font-size: 20px;
+		font-weight: bold;
+	}
+	.OTPText {
+		font-size: 20px;
+	}
+	em {
+		font-weight: bolder;
+		font-style: normal;
+	}
+	.warntxt {
+		color: #ff0000;
+		font-size: 15px;
+		font-style: italic;
+	}
+	.hello {
+		font-size: 17px;
+		font-weight: bold;
+	}
+	.special {
+		color: #0b8114;
+	}
+</style>
+<div class="container">
+	<p class="hello">Hello,</p>
+	<p>` + p1 + `</p>
+	<p>` + p2 + `</p>
+	<p class="OTPtext">
+		<strong>` + p3 + `: </strong>
+		<span class="OTP"> ` + code + `</span>
+	</p>
+	<p class="warntxt">
+		If you didn't request this, you can safely ignore this email.
+	</p>
+	<p>Best regards,<br />PetPal User Support Team</p>
+</div>
+`
+	return html
+}

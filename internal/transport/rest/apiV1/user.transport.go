@@ -20,6 +20,9 @@ func UserServices(r *gin.RouterGroup, h *database.Handler, stg *storage.Handler)
 	//     services.GetSessionToken(c, h)
 	// })
 
+	// Validate password
+	r.POST("/valpasswd", userHandler.ValidatePassword)
+
 	r.POST("/forgotpasswd", userHandler.UpdateForgotPassword)
 
 	// Get me
