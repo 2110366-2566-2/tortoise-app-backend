@@ -20,12 +20,7 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		return
 	}
 
-	// Set default values
-	if user.FirstName == "" { user.FirstName = "First" }
-	if user.LastName == "" { user.LastName = "Last" }
-	if user.Gender == "" { user.Gender = "Male" }
-	if user.PhoneNumber == "" { user.PhoneNumber = "0000000000" }
-
+	// Validate the user model
 	uservalidate := validator.New()
 	if err := uservalidate.Struct(user); err != nil {
 		c.JSON(400, gin.H{"success": false, "error": err.Error()})

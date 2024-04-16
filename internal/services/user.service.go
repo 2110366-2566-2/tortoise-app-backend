@@ -3,13 +3,13 @@ package services
 import (
 	"log"
 	"net/http"
-
+	"strconv"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/go-playground/validator.v9"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -116,17 +116,23 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var data bson.M
 	c.BindJSON(&data)
 
-	// var data models.User
-    // if err := c.ShouldBindJSON(&data); err != nil {
-    //     c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-    //     return
-    // }
+	//validate fields in body
+	phoneNumber, ok := data["phone_number"].(string)
+	if !ok {
+    	c.JSON(400, gin.H{"success": false, "error": "phone number should be a string"})
+    	return
+	}
 
-    // validate := validator.New()
-    // if err := validate.Struct(data); err != nil {
-    //     c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
+	_, err := strconv.Atoi(phoneNumber)
+	if err != nil {
+    	c.JSON(400, gin.H{"success": false, "error": "phone number should be numeric"})
+    	return
+	}
+
+	if len(data["first_name"].(string))<4 || len(data["last_name"].(string))<4 || (data["gender"] != "Male" && data["gender"]!= "Female") || len(phoneNumber)!=10 {
+		c.JSON(400, gin.H{"success": false, "error": "invalid field"})
+		return
+	}
 
 	//Check if body have "password field"
 	if _, ok := data["password"]; ok {
