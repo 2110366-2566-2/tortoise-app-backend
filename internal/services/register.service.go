@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
+	"gopkg.in/go-playground/validator.v9"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -21,6 +22,13 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 
 	// Sanitize the user input
 	utils.UserSaniatize(&user)
+
+	// Validate the user model
+	uservalidate := validator.New()
+	if err := uservalidate.Struct(user); err != nil {
+		c.JSON(400, gin.H{"success": false, "error": err.Error()})
+		return
+	}
 
 	var role string
 	if user.Role == 1 {

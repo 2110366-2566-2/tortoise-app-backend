@@ -14,6 +14,7 @@ require (
 	github.com/swaggo/swag v1.16.3
 	go.mongodb.org/mongo-driver v1.14.0
 	golang.org/x/crypto v0.22.0
+	gopkg.in/go-playground/validator.v9 v9.31.0
 )
 
 require (
@@ -28,11 +29,14 @@ require (
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.49.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.24.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.20.0 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240311132316-a219d84964c2 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
 
 require (
