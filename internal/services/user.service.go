@@ -102,7 +102,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.BindJSON(&data)
 
 	//validate fields in body
-	phoneNumber, ok := data["phone_number"].(string)
+	phoneNumber, ok := data["phoneNumber"].(string)
 	if !ok {
     	c.JSON(400, gin.H{"success": false, "error": "phone number should be a string"})
     	return
@@ -166,6 +166,9 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
+	log.Println("updated user: ", updatedUser)
+
+
 }
 
 func (h *UserHandler) DeleteUser(c *gin.Context) {

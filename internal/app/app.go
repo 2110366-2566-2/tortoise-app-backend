@@ -136,6 +136,8 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// print the ascii art
 	printASCIIArt()
 
+	
+
 	return srv, func() {
 		log.Println("Closing the database ...")
 		err := database.CloseMongo(db, cancel)
