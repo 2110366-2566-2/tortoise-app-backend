@@ -126,10 +126,10 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	// log data
-	log.Println("Length of data: ", len(data))
-	for k, v := range data {
-		log.Println("Key: ", k, "Value: ", v)
-	}
+	// log.Println("Length of data: ", len(data))
+	// for k, v := range data {
+	// 	log.Println("Key: ", k, "Value: ", v)
+	// }
 
 	utils.BsonSanitize(&data)
 
@@ -166,7 +166,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
-	log.Println("updated user: ", updatedUser)
+	// log.Println("updated user: ", updatedUser)
 
 
 }

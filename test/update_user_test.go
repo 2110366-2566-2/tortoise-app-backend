@@ -2,21 +2,16 @@ package test
 
 import (
     "bytes"
-    // "encoding/json"
-    // "fmt"
     "net/http"
     "net/http/httptest"
     "testing"
 	"time"
 	"context"
-    // "log"
-
 
     "github.com/2110366-2566-2/tortoise-app-backend/internal/database"
     "github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
     "github.com/2110366-2566-2/tortoise-app-backend/internal/services"
     "github.com/2110366-2566-2/tortoise-app-backend/internal/models"
-	// "github.com/2110366-2566-2/tortoise-app-backend/configs"
 
     "github.com/gin-gonic/gin"
     "github.com/stretchr/testify/assert"
@@ -39,6 +34,7 @@ func setup() (*gin.Engine, *database.Handler) {
         
     // Create a new HTTP request
     w := httptest.NewRecorder()
+    
     //-----------------------------
     req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
 	{
@@ -60,8 +56,8 @@ func setup() (*gin.Engine, *database.Handler) {
 		}
 	}
     `)))
-
     //-----------------------------
+
     req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
     // Serve the HTTP request to the handler
     r.ServeHTTP(w, req)
@@ -69,26 +65,25 @@ func setup() (*gin.Engine, *database.Handler) {
     return r,dbHandler
 }
 
-
-
 func defaultAssert(user models.User, t *testing.T) {
+    // if update failed, the user should be the same as before
     assert.Equal(t, "mahiru", user.FirstName)
     assert.Equal(t, "shiina", user.LastName)
     assert.Equal(t, "Female", user.Gender)
     assert.Equal(t, "0123456789", user.PhoneNumber)
 }
 
-func TestCorrectUpdateUser(t *testing.T) {
+func TestCorrect1(t *testing.T) {
     r,dbHandler:= setup()
     w := httptest.NewRecorder()
 
     //-----------------------------
     req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
 	{
-		"first_name": "yamada",
-		"last_name": "anna",
-		"gender": "Male",
-		"phoneNumber": "9876543210"
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Female",
+		"phoneNumber": "0123456789"
 	}
     `)))
     //-----------------------------
@@ -100,27 +95,51 @@ func TestCorrectUpdateUser(t *testing.T) {
     r.ServeHTTP(w, req)
 
     user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
-    
-
-    // assert.NotEqual(t, http.StatusOK, w.Code)
-    //     // w = w_prev
-    //     // user :=  MarshalManage(w)
-    // defaultAssert(*user, t)
-
 
     assert.Equal(t, http.StatusOK, w.Code)
-        // user :=  MarshalManage(w)
-    //-----------------------------
-    assert.Equal(t, "yamada", user.FirstName)
-    assert.Equal(t, "anna", user.LastName)
-    assert.Equal(t, "Male", user.Gender)
-    assert.Equal(t, "9876543210", user.PhoneNumber)
-    //-----------------------------
-    
 
+    //-----------------------------
+    assert.Equal(t, "mahiru", user.FirstName)
+    assert.Equal(t, "shiina", user.LastName)
+    assert.Equal(t, "Female", user.Gender)
+    assert.Equal(t, "0123456789", user.PhoneNumber)
+    //-----------------------------
 }
 
-func TestNoFirstNameUpdateUser(t *testing.T) {
+func TestCorrect2(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "Mahiru",
+		"last_name": "Shiina",
+		"gender": "Female",
+		"phoneNumber": "0000000000"
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+
+    assert.Equal(t, http.StatusOK, w.Code)
+
+    //-----------------------------
+    assert.Equal(t, "Mahiru", user.FirstName)
+    assert.Equal(t, "Shiina", user.LastName)
+    assert.Equal(t, "Female", user.Gender)
+    assert.Equal(t, "0000000000", user.PhoneNumber)
+    //-----------------------------
+}
+
+func TestNoFirstName(t *testing.T) {
     r,dbHandler:= setup()
     w := httptest.NewRecorder()
 
@@ -128,9 +147,9 @@ func TestNoFirstNameUpdateUser(t *testing.T) {
     req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
 	{
 		"first_name": "",
-		"last_name": "anna",
+		"last_name": "shiina",
 		"gender": "Female",
-		"phoneNumber": "9876543210"
+		"phoneNumber": "0123456789"
 	}
     `)))
     //-----------------------------
@@ -147,17 +166,17 @@ func TestNoFirstNameUpdateUser(t *testing.T) {
     defaultAssert(*user, t)
 }
 
-func TestNoLastNameUpdateUser(t *testing.T) {
+func TestNoLastName(t *testing.T) {
     r,dbHandler:= setup()
     w := httptest.NewRecorder()
 
     //-----------------------------
     req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
 	{
-		"first_name": "yamada",
+		"first_name": "mahiru",
 		"last_name": "",
 		"gender": "Female",
-		"phoneNumber": "9876543210"
+		"phoneNumber": "0123456789"
 	}
     `)))
     //-----------------------------
@@ -174,6 +193,86 @@ func TestNoLastNameUpdateUser(t *testing.T) {
     defaultAssert(*user, t)
 }
 
+func TestInvalidGender(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Angel",
+		"phoneNumber": "0123456789"
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+    
+    assert.NotEqual(t, http.StatusOK, w.Code)
+    defaultAssert(*user, t)
+}
+
+func TestInvalidPhoneNumberLength(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Female",
+		"phoneNumber": "012345678"
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+    
+    assert.NotEqual(t, http.StatusOK, w.Code)
+    defaultAssert(*user, t)
+}
+
+func TestInvalidPhoneNumberNumeric(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Female",
+		"phoneNumber": "012345678x"
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+    
+    assert.NotEqual(t, http.StatusOK, w.Code)
+    defaultAssert(*user, t)
+}
 
     //func MarshalManage(w *httptest.ResponseRecorder) models.User {
     //     // Assuming w.Body.String() gives you the JSON string
