@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
@@ -104,17 +105,17 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	//validate fields in body
 	phoneNumber, ok := data["phoneNumber"].(string)
 	if !ok {
-    	c.JSON(400, gin.H{"success": false, "error": "phone number should be a string"})
-    	return
+		c.JSON(400, gin.H{"success": false, "error": "phone number should be a string"})
+		return
 	}
 
 	_, err := strconv.Atoi(phoneNumber)
 	if err != nil {
-    	c.JSON(400, gin.H{"success": false, "error": "phone number should be numeric"})
-    	return
+		c.JSON(400, gin.H{"success": false, "error": "phone number should be numeric"})
+		return
 	}
 
-	if len(data["first_name"].(string))<1 || len(data["last_name"].(string))<1 || (data["gender"] != "Male" && data["gender"]!= "Female") || len(phoneNumber)!=10 {
+	if len(data["first_name"].(string)) < 1 || len(data["last_name"].(string)) < 1 || (data["gender"] != "Male" && data["gender"] != "Female") || len(phoneNumber) != 10 {
 		c.JSON(400, gin.H{"success": false, "error": "invalid field"})
 		return
 	}
@@ -148,8 +149,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		data["image"] = url
 	}
 
-
-
 	res, err := h.dbHandler.UpdateOneUser(c, c.Param("userID"), data)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -168,15 +167,24 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
 	// log.Println("updated user: ", updatedUser)
 
-
 }
 
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userID := utils.SanitizeString(c.Param("userID"))
+	var password models.Password
+	c.BindJSON(&password)
 	user, err := h.dbHandler.GetUserByUserID(c, userID)
 	if err != nil {
 		log.Println("Error: ", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "user not found"})
+		return
+	}
+
+	hashedPassword := user.Password
+
+	// validate password
+	if !utils.ComparePassword(hashedPassword, password.Password) {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "password is incorrect"})
 		return
 	}
 

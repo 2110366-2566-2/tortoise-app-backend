@@ -11,7 +11,7 @@ type Admin struct {
 	FirstName   string             `json:"first_name" bson:"first_name" binding:"required"`
 	LastName    string             `json:"last_name" bson:"last_name" binding:"required"`
 	Gender      string             `json:"gender"`
-	PhoneNumber string             `json:"phone_number" bson:"phone_number" binding:"required"`
+	PhoneNumber string             `json:"phoneNumber" bson:"phoneNumber" binding:"required"`
 	Image       string             `json:"image"`
 	Address     struct {
 		Province    string `json:"province"`
