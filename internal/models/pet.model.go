@@ -6,7 +6,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 type Pet struct {
 	ID              primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty" example:"60163b3be1e8712c4e7f35cf"`
 	Name            string             `json:"name" example:"Fluffy"`
-	Age             int32              `json:"age" example:"3"`
+	Age             float32            `json:"age" example:"3.0"`
 	Price           int32              `json:"price" example:"500"`
 	Is_sold         bool               `json:"is_sold" example:"false"`
 	Description     string             `json:"description" example:"A friendly and playful dog"`
@@ -39,9 +39,9 @@ type PetCard struct {
 }
 
 type PetDetail struct {
-	Name    string `json:"name"`
-	Age     int32  `json:"age"`
-	Sex     string `json:"sex"`
-	Species string `json:"species"`
-	Media   string `json:"media"`
+	Name    string  `json:"name"`
+	Age     float32 `json:"age"`
+	Sex     string  `json:"sex"`
+	Species string  `json:"species"`
+	Media   string  `json:"media"`
 }
