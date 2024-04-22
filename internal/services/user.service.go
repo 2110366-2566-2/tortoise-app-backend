@@ -114,7 +114,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
     	return
 	}
 
-	if len(data["first_name"].(string))<1 || len(data["last_name"].(string))<1 ||(data["gender"] != "Male" && data["gender"]!= "Female") || len(phoneNumber)!=10 {
+	if len(data["first_name"].(string))<1 || len(data["last_name"].(string))<1 || (data["gender"] != "Male" && data["gender"]!= "Female") || len(phoneNumber)!=10 {
 		c.JSON(400, gin.H{"success": false, "error": "invalid field"})
 		return
 	}
