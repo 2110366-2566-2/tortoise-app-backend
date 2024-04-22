@@ -2,17 +2,15 @@ FROM golang:1.22.2-alpine
 
 LABEL MAINTAINER="PetPal"
 
-RUN mkdir /petpal
-COPY go.mod go.sum /petpal/
-WORKDIR /petpal
+WORKDIR /app
+
+COPY go.mod go.sum ./
 
 RUN go mod download
-COPY . ./
 
-RUN go mod tidy
+COPY . .
 
-# Build in "cmd/app/main.go"
-RUN go build -o main cmd/app/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./cmd/app/main ./cmd/app/main.go
 
-CMD ["/main"]
+CMD ["./cmd/app/main"]
 
