@@ -120,6 +120,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
+
 	//Check if body have "password field"
 	if _, ok := data["password"]; ok {
 		c.JSON(400, gin.H{"success": false, "error": "found password field in body"})
