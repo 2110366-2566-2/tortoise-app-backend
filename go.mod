@@ -1,6 +1,6 @@
 module github.com/2110366-2566-2/tortoise-app-backend
 
-go 1.21.6
+go 1.23
 
 require (
 	cloud.google.com/go/storage v1.39.1
