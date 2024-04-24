@@ -274,6 +274,99 @@ func TestInvalidPhoneNumberNumeric(t *testing.T) {
     defaultAssert(*user, t)
 }
 
+func TestValidImage(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Female",
+		"phoneNumber": "0123456789",
+        "image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+
+    assert.Equal(t, http.StatusOK, w.Code)
+
+    //-----------------------------
+    assert.Equal(t, "mahiru", user.FirstName)
+    assert.Equal(t, "shiina", user.LastName)
+    assert.Equal(t, "Female", user.Gender)
+    assert.Equal(t, "0123456789", user.PhoneNumber)
+    // assert.Equal(t, "https://firebasestorage.googleapis.com/v0/b/petpal-cloud-storage.appspot.com/o/users%2F661f8ce33e12e57c0c400302?alt=media", user.Image)
+    //-----------------------------
+}
+
+func TestInvalidImage(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Female",
+		"phoneNumber": "0123456789",
+        "image":"iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+    
+    assert.NotEqual(t, http.StatusOK, w.Code)
+    defaultAssert(*user, t)
+}
+
+func TestContainPassword(t *testing.T) {
+    r,dbHandler:= setup()
+    w := httptest.NewRecorder()
+
+    //-----------------------------
+    req, _ := http.NewRequest("PUT", "/api/v1/user/661f8ce33e12e57c0c400302", bytes.NewBuffer([]byte(`
+	{
+		"first_name": "mahiru",
+		"last_name": "shiina",
+		"gender": "Female",
+		"phoneNumber": "0123456789",
+        "password":"mahiru"
+	}
+    `)))
+    //-----------------------------
+
+    // req.Header.Set("Content-Type", "application/json")
+    req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTM0MzAxMTUsInJvbGUiOiJidXllciIsInVzZXJJRCI6IjY2MWY4Y2UzM2UxMmU1N2MwYzQwMDMwMiIsInVzZXJuYW1lIjoibWFoaXJ1In0.p-pI12Id1-uAzwVjmOvuyAPGK3Jy8iWj4MYeo1ouxCk")
+
+    // Serve the HTTP request to the handler
+    r.ServeHTTP(w, req)
+
+    user,_ := dbHandler.GetUserByUserID(context.Background(),"661f8ce33e12e57c0c400302")
+    
+    assert.NotEqual(t, http.StatusOK, w.Code)
+    defaultAssert(*user, t)
+}
+
+
+
     //func MarshalManage(w *httptest.ResponseRecorder) models.User {
     //     // Assuming w.Body.String() gives you the JSON string
     //     jsonStr := w.Body.String()
