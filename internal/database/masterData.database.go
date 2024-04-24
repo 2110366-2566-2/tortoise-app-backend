@@ -48,7 +48,7 @@ func (h *Handler) GetAllMasterData(ctx context.Context) (*[]models.MasterData, e
 // GetMasterDataByCategory returns master data by Category
 func (h *Handler) GetMasterDataByCategory(ctx context.Context, category string) (*models.MasterData, error) {
 	var masterData models.MasterData
-	filter := bson.M{"category": category}
+	filter := bson.M{"category": bson.M{"$regex": "^" + category + "$", "$options": "i"}}
 	err := h.db.Collection("master_data").FindOne(ctx, filter).Decode(&masterData)
 	if err != nil {
 		return nil, err

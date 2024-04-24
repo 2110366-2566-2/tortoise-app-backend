@@ -17,6 +17,18 @@ func jwtMiddleware(env configs.EnvVars) gin.HandlerFunc {
 		// Get the JWT secret key from the environment
 		secretKey := env.JWT_SECRET
 
+		// Extract the token from the request
+		tokenString := c.GetHeader("Authorization")
+		if tokenString == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false, "error": "authorization header not found"})
+			return
+		}
+		if !strings.HasPrefix(tokenString, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false, "error": "authorization format is invalid"})
+			return
+		}
+		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
+
 		// Create a new JWT middleware
 		authMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 			ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
@@ -29,13 +41,9 @@ func jwtMiddleware(env configs.EnvVars) gin.HandlerFunc {
 		err := authMiddleware.CheckJWT(c.Writer, c.Request)
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false, "error": "unauthorized"})
 			return
 		}
-
-		// Extract the token from the request
-		tokenString := c.GetHeader("Authorization")
-		tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 		// Parse the token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -46,7 +54,7 @@ func jwtMiddleware(env configs.EnvVars) gin.HandlerFunc {
 		})
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false, "error": "unauthorized"})
 			return
 		}
 
@@ -69,7 +77,7 @@ func roleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		role, exists := c.Get("role")
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"success": false, "error": "unauthorized"})
 			return
 		}
 
@@ -80,6 +88,6 @@ func roleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 			}
 		}
 
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"success": false, "error": "forbidden"})
 	}
 }

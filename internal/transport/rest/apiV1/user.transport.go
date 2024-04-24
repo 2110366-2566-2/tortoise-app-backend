@@ -15,10 +15,13 @@ func UserServices(r *gin.RouterGroup, h *database.Handler, stg *storage.Handler)
 	r.GET("/:userID", userHandler.GetUserByUserID)
 	r.PUT("/passwd/:userID", userHandler.UpdateUserPasswd)
 	r.PUT("/:userID", userHandler.UpdateUser)
-	r.DELETE("/:userID", userHandler.DeleteUser)
+	r.POST("/:userID", userHandler.DeleteUser)
 	// r.GET("/token/session", func(c *gin.Context) {
 	//     services.GetSessionToken(c, h)
 	// })
+
+	// Validate password
+	r.POST("/valpasswd", userHandler.ValidatePassword)
 
 	r.POST("/forgotpasswd", userHandler.UpdateForgotPassword)
 

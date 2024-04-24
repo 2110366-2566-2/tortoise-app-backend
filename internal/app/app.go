@@ -16,6 +16,10 @@ import (
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/transport/rest/apiV1"
 	"github.com/gin-gonic/gin"
+
+	docs "github.com/2110366-2566-2/tortoise-app-backend/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Run(env configs.EnvVars) (func(), error) {
@@ -43,7 +47,14 @@ func Run(env configs.EnvVars) (func(), error) {
 			fmt.Println()
 			log.Println("Shutdown Server ...")
 
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			var waitTime int
+			if env.SKIP_WAIT == "true" {
+				waitTime = 0
+			} else {
+				waitTime = 5
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Duration(waitTime)*time.Second)
 			defer cancel()
 
 			if err := srv.Shutdown(ctx); err != nil {
@@ -52,7 +63,7 @@ func Run(env configs.EnvVars) (func(), error) {
 
 			done := make(chan struct{})
 			go func() {
-				log.Println("Timeout of 5 seconds.")
+				log.Println("Timeout of", waitTime, "second(s).")
 				<-ctx.Done()
 				done <- struct{}{}
 			}()
@@ -96,8 +107,21 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// init the server
 	r := gin.Default()
 
+	docs.SwaggerInfo.BasePath = "/"
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// set up CORS
 	r.Use(CORSMiddleware(env))
+
+	// Set security headers
+	r.Use(func(c *gin.Context) {
+		c.Header("X-Frame-Options", "DENY")
+		c.Header("X-XSS-Protection", "1; mode=block")
+		c.Header("X-Content-Type-Options", "nosniff")
+		c.Header("Content-Security-Policy", "default-src 'self'")
+		c.Next()
+	})
 
 	// setup the routes
 	rest.SetupRoutes(r)
@@ -112,6 +136,8 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 	// print the ascii art
 	printASCIIArt()
 
+	
+
 	return srv, func() {
 		log.Println("Closing the database ...")
 		err := database.CloseMongo(db, cancel)
@@ -124,11 +150,10 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 
 func CORSMiddleware(env configs.EnvVars) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", env.FRONTEND_URL)
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "*")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)

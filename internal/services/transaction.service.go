@@ -17,11 +17,6 @@ func NewTransactionHandler(handler *database.Handler) *TransactionHandler {
 	return &TransactionHandler{handler: handler}
 }
 
-// GetTransactions godoc
-// @Method GET
-// @Summary Get transactions
-// @Description Get transactions of user
-// @Endpoint /api/v1/transactions/:userID
 func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
 	// fmt.Println(c)
@@ -76,11 +71,6 @@ func (h *TransactionHandler) GetTransactions(c *gin.Context) {
 
 }
 
-// GetTransactionByTransactionID godoc
-// @Method GET
-// @Summary Get transaction by transaction id
-// @Description Get transaction by transaction id
-// @Endpoint /api/v1/transactions/detail/:transactionID
 func (h *TransactionHandler) GetTransactionByTransactionID(c *gin.Context) {
 	transaction, err := h.handler.GetTransactionByTransactionID(c, c.Param("transactionID"))
 	if err != nil {

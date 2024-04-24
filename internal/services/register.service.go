@@ -1,11 +1,15 @@
 package services
 
 import (
+	"fmt"
+	"regexp"
+
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/database"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/models"
 	"github.com/2110366-2566-2/tortoise-app-backend/internal/storage"
 	"github.com/2110366-2566-2/tortoise-app-backend/pkg/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -19,9 +23,32 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		return
 	}
 
+	// Sanitize the user input
+	utils.UserSaniatize(&user)
+
+	// Validate the user model
+	uservalidate := validator.New()
+	if err := uservalidate.Struct(user); err != nil {
+		c.JSON(400, gin.H{"success": false, "error": err.Error()})
+		return
+	}
+
 	var role string
 	if user.Role == 1 {
 		role = "seller"
+		data := user.License
+		match, err := regexp.MatchString(`^\d{2}/[A-Za-z0-9]+$`, data)
+		if !match {
+			fmt.Println("License invalid format")
+			c.JSON(400, gin.H{"success": false, "error": "License invalid format"})
+			return
+		}
+		if err != nil {
+			// handle validation errors
+			fmt.Println("Validation error:", err)
+			c.JSON(500, gin.H{"error": "Internal server error", "success": false})
+			return
+		}
 	} else if user.Role == 2 {
 		role = "buyer"
 	} else {
@@ -76,6 +103,8 @@ func RegisterHandler(c *gin.Context, h *database.Handler, storage *storage.Handl
 		c.JSON(500, gin.H{"error": "failed to generate token", "success": false})
 		return
 	}
+
+	user.License = ""
 
 	c.JSON(200, gin.H{"success": true, "message": "User created successfully", "user": &user, "token": tokenString})
 }
