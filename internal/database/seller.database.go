@@ -128,3 +128,20 @@ func (h *Handler) GetAllSellers(ctx context.Context, status string) (*[]models.S
 
 	return &sellers, nil
 }
+
+func (h *Handler) UpdateSeller(ctx context.Context, sellerID string, data bson.M) (*mongo.UpdateResult, error) {
+	// Convert sellerID to ObjectID
+	sellerObjID, err := primitive.ObjectIDFromHex(sellerID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert sellerID to ObjectID: %v", err)
+	}
+
+	// Update seller
+	filter := bson.M{"_id": sellerObjID}
+	update := bson.M{"$set": data}
+	res, err := h.db.Collection("sellers").UpdateOne(ctx, filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update seller: %v", err)
+	}
+	return res, nil
+}
