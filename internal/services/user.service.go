@@ -156,9 +156,50 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update user's profiles"})
 		return
 	}
-	// log result
+
 	var updatedUser models.User
 	err = res.Decode(&updatedUser)
+
+	var update bson.M
+	// check if have first_name or last_name or both
+	_, ok1 := data["first_name"]
+	_, ok2 := data["last_name"]
+	if ok1 && ok2 {
+		// mongo update document
+		update = bson.M{
+			"first_name": data["first_name"],
+			"last_name":  data["last_name"],
+		}
+	} else if ok1 {
+		update = bson.M{
+			"first_name": data["first_name"],
+		}
+	} else if ok2 {
+		update = bson.M{
+			"last_name": data["last_name"],
+		}
+	}
+
+	if updatedUser.Role == 1 && len(update) > 0 {
+		// update seller's
+		if len(update) > 0 {
+			_, err = h.dbHandler.UpdateSeller(c, c.Param("userID"), update)
+			if err != nil {
+				log.Println("Error: ", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update seller's profiles"})
+				return
+			}
+		}
+	} else if updatedUser.Role == 2 && len(update) > 0 {
+		// update buyer's
+		_, err = h.dbHandler.UpdateBuyer(c, c.Param("userID"), update)
+		if err != nil {
+			log.Println("Error: ", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to update buyer's profiles"})
+			return
+		}
+	}
+
 	if err != nil {
 		log.Println("Error decoding updated user's password:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "failed to decode updated user's profiles"})
@@ -166,7 +207,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": updatedUser})
-	// log.Println("updated user: ", updatedUser)
 
 }
 
