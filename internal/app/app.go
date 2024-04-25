@@ -132,11 +132,10 @@ func buildServer(env configs.EnvVars) (*http.Server, func(), error) {
 		Addr:    ":" + env.PORT,
 		Handler: r,
 	}
+	log.Println("Server is running on port", env.PORT)
 
 	// print the ascii art
 	printASCIIArt()
-
-	
 
 	return srv, func() {
 		log.Println("Closing the database ...")

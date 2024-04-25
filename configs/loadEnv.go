@@ -24,11 +24,21 @@ func LoadConfig() (config EnvVars, err error) {
 		return EnvVars{}, err
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	frontend_url := os.Getenv("FRONTEND_URL")
+	if frontend_url == "" {
+		frontend_url = "http://localhost:3000"
+	}
+
 	config = EnvVars{
 		MONGODB_URI:     os.Getenv("MONGODB_URI"),
 		MONGODB_NAME:    os.Getenv("MONGODB_NAME"),
-		FRONTEND_URL:    os.Getenv("FRONTEND_URL"),
-		PORT:            os.Getenv("PORT"),
+		FRONTEND_URL:    frontend_url,
+		PORT:            port,
 		JWT_SECRET:      os.Getenv("JWT_SECRET"),
 		STRIPE_KEY:      os.Getenv("STRIPE_KEY"),
 		GIN_MODE:        os.Getenv("GIN_MODE"),
